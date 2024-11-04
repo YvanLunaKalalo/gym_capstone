@@ -1,0 +1,52 @@
+{% extends 'admin/change_list.html' %}
+
+{% block extrahead %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="chart-container">
+        <canvas id="userProgressChart"></canvas>
+    </div>
+
+    {{ block.super }}
+
+    <script>
+        var workoutTitles = {{ workout_titles|safe }};
+        var progressCounts = {{ progress_counts|safe }};
+        
+        var ctx = document.getElementById('userProgressChart').getContext('2d');
+        var userProgressChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: workoutTitles,
+                datasets: [{
+                    label: 'User Progress Distribution',
+                    data: progressCounts,
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(255, 206, 86, 1)',
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        enabled: true,
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'master.html' %}
+
+{% load static %}
+
+{% block title %}
+<title>Flex Appeal || Home</title>
+{% endblock %}
+
+{% block content %}
+
+{% if request.user.is_authenticated %}
+
+{% include 'body_snippets/main_banner_area.html' %}
+{% include 'body_snippets/schedule.html' %}
+{% include 'body_snippets/testimonials.html' %}
+{% include 'body_snippets/contact_us.html' %}
+
+{% else %}
+
+{% include 'body_snippets/main_banner_area.html' %}
+{% include 'body_snippets/features_item.html' %}
+{% include 'body_snippets/call_to_action.html' %}
+{% include 'body_snippets/our_classes.html' %}
+{% include 'body_snippets/schedule.html' %}
+{% include 'body_snippets/testimonials.html' %}
+{% include 'body_snippets/contact_us.html' %}
+
+{% endif %}
+
+{% endblock %}

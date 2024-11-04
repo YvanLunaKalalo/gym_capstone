@@ -1,0 +1,126 @@
+{% extends 'master.html' %}
+
+{% load static %}
+
+{% block title %}
+<title>Flex Appeal || Recommended Workouts</title>
+{% endblock %}
+
+{% block content %}
+
+<style type="text/css">
+    .video-overlay {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .caption {
+        text-align: center;
+        color: white;
+    }
+
+    .result-text {
+        margin-top: 20px;
+        font-weight: bold;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.6);
+        padding: 10px;
+        border-radius: 5px;
+        display: inline-block;
+    }
+</style>
+
+<div class="main-banner" id="top">
+    <video autoplay muted loop id="bg-video">
+        <source src="{% static 'images/gym-video(4).mp4' %}" type="video/mp4" />
+    </video>
+
+    <div class="video-overlay header-text">
+        <div class="caption">
+            <h2 class="mb-4">Recommended <em>Workouts</em></h2>
+
+            <form method="POST">
+                {% csrf_token %}
+                <label for="Weight">Weight (in kg): </label>
+                <input type="number" name="Weight" id="Weight" value="{{ request.POST.Weight }}" required><br><br>
+
+                <label for="Height">Height (in cm): </label>
+                <input type="number" name="Height" id="Height" value="{{ request.POST.Height }}" required><br><br>
+
+                <label for="BMI">BMI: </label>
+                <input type="number" name="BMI" id="BMI" placeholder="18.5 - 30" value="{{ request.POST.BMI }}" required><br><br>
+
+                <!-- Gender: <input type="text" name="gender" required><br> -->
+
+                <!-- <label for="gender">Gender: </label>
+                <select name="gender">
+                    <option value="male" id="male">Male</option>
+                    <option value="female" id="female">Female</option>
+                </select><br><br>
+
+                Age: <input type="number" name="age" required><br>
+
+                BMIcase: <input type="text" name="BMIcase" required><br>
+
+                <label for="BMIcase">BMI Case: </label>
+                <select name="BMIcase">
+                    <option value="sever thinness" id="sever thinness">0</option>
+                    <option value="moderate thinness" id="moderate thinness">1</option>
+                    <option value="mild thinness" id="mild thinness">2</option>
+                    <option value="normal" id="normal">3</option>
+                    <option value="over weight" id="over weight">4</option>
+                    <option value="obese" id="obese">5</option>
+                    <option value="severe obese" id="severe obese">6</option>
+                </select><br><br> -->
+
+                <!-- Add other input fields as needed -->
+
+                <input type="submit" value="Get Recommendations">
+    
+            </form>
+
+            <!-- {% if workouts %}
+                <h3 class="result-text">Your Recommended Workouts: {{ workouts }}</h3>
+            {% endif %} -->
+
+            <!-- {% if workouts %}
+                <h3 class="mt-5">Your Recommended Workouts:</h3>
+                
+                <ul class="list-group">
+                {% for workout in workouts %}
+                    <li class="result-text">
+                        {% for key, value in workout.items %}
+                            {{ key }}: {{ value }}<br>
+                        {% endfor %}
+                    </li>
+                {% endfor %}
+                </ul>
+            {% endif %} -->
+
+        </div>
+    </div>
+
+    {% if workouts %}
+        <div class="container mt-5">
+        <h3 class="text-center mb-4">Your Recommended Workouts:</h3>
+
+            <ul class="list-group">
+                {% for workout in workouts %}
+                    <li class="list-group-item">
+                        <div class="columns">
+                            {% for key, value in workout.items %}
+                                <div class="col-6">
+                                    <strong>{{ key }}:</strong> {{ value }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
