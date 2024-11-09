@@ -1,0 +1,75 @@
+{% extends 'master.html' %}
+
+{% load static %}
+
+{% block title %}
+<title>Flex Appeal || Workout Recommendations</title>
+{% endblock %}
+
+{% block content %}
+
+<style type="text/css">
+  /* Styling the submit button */
+  .btn-custom {
+        background-color: #ed563b;
+        border: none;
+        padding: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: background-color 0.3s ease;
+        color: white;
+    }
+
+    .btn-custom:hover {
+        background-color: white;
+        color: #ed563b;
+    }
+
+</style>
+
+<div class="main-banner pt-5" id="top">
+  <!-- Workout Recommendations Section -->
+  <div class="container pt-5"> <!-- Added Bootstrap container and pt-5 for top padding -->
+
+    <a href="{% url 'recommend' %}" class="btn btn-custom">
+      Go Back
+    </a>
+
+    <div class="row justify-content-center">
+
+      <h2 class="text-center mb-5 font-weight-bold text-uppercase" style="letter-spacing: 1.5px;">Recommended Workouts:</h2>
+
+      <div class="col-sm-12">
+        <div class="row">
+          {% for workout in recommended_workouts %}
+          <div class="row mb-4"> <!-- Changed from col-md-4 to row -->
+            <div class="col-md-12">
+              <div class="card h-100 shadow-lg border-0 bg-dark text-white rounded-lg overflow-hidden">
+                <div class="card-body d-flex flex-column justify-content-between">
+                  <div>
+                    <h5 class="card-title font-weight-bold text-uppercase" style="letter-spacing: 1px;">{{ workout.Title }}</h5>
+                    <p class="card-text text-muted small">{{ workout.Desc }}</p>
+                  </div>
+                  <div class="mt-3">
+                    <p class="mb-1"><strong>Type:</strong> {{ workout.Type }}</p>
+                    <p class="mb-1"><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
+                    <p class="mb-1"><strong>Equipment:</strong> {{ workout.Equipment }}</p>
+                    <p class="mb-1"><strong>Level:</strong> {{ workout.Level }}</p>
+                  </div>
+                  <form method="POST" action="{% url 'update_progress' workout.Title %}" class="mt-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="increment" value="10"> <!-- Adjust increment value as needed -->
+                    <button type="submit" class="btn btn-custom btn-lg w-100 text-uppercase font-weight-bold" style="letter-spacing: 1px;">Track Progress</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

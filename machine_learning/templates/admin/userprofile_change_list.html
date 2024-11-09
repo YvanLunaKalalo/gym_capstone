@@ -1,0 +1,52 @@
+{% extends 'admin/change_list.html' %}
+
+{% block extrahead %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="chart-container">
+        <canvas id="userProfileChart"></canvas>
+    </div>
+
+    {{ block.super }}
+
+    <script>
+        var fitnessGoalLabels = {{ fitness_goal_labels|safe }};
+        var fitnessGoalCounts = {{ fitness_goal_counts|safe }};
+        
+        var ctx = document.getElementById('userProfileChart').getContext('2d');
+        var userProfileChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: fitnessGoalLabels,
+                datasets: [{
+                    label: 'Fitness Goals Distribution',
+                    data: fitnessGoalCounts,
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(255, 206, 86, 1)',
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        enabled: true,
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}

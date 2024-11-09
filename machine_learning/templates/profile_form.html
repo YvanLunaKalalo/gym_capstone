@@ -1,0 +1,172 @@
+{% extends 'master.html' %}
+
+{% load static %}
+
+{% block title %}
+<title>Flex Appeal || Profile Form</title>
+{% endblock %}
+
+{% block content %}
+
+<style type="text/css">
+    /* General form styling for professional look */
+    .form-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 40px;
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-label {
+        font-weight: 600;
+    }
+
+    .form-control, .form-select {
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ced4da;
+        transition: border-color 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #ed563b;
+        box-shadow: none;
+    }
+
+    /* Styling the submit button */
+    .btn-custom {
+        background-color: #ed563b;
+        border: none;
+        padding: 15px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-custom:hover {
+        background-color: #f76c53;
+    }
+
+    /* Headings */
+    h2 {
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+</style>
+
+<div class="main-banner" id="top">
+    <div class="container mt-5">
+        <form method="POST" class="form-container">
+            {% csrf_token %}
+
+            <h2 class="text-center mb-4">Profile Form</h2>
+
+            <!-- Sex -->
+            <div class="mb-3">
+                <label for="Sex" class="form-label">Sex</label>
+                <select name="Sex" class="form-select" required>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+
+            <!-- Age -->
+            <div class="mb-3">
+                <label for="Age" class="form-label">Age</label>
+                <input type="number" name="Age" class="form-control" required>
+            </div>
+
+            <!-- Height -->
+            <div class="mb-3">
+                <label for="Height" class="form-label">Height (in cm)</label>
+                <input type="number" step="0.01" name="Height" class="form-control" required>
+            </div>
+
+            <!-- Weight -->
+            <div class="mb-3">
+                <label for="Weight" class="form-label">Weight (in kg)</label>
+                <input type="number" step="0.1" name="Weight" class="form-control" required>
+            </div>
+
+            <!-- Hypertension -->
+            <div class="mb-3">
+                <label for="Hypertension" class="form-label">Hypertension</label>
+                <select name="Hypertension" class="form-select" required>
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                </select>
+            </div>
+
+            <!-- Diabetes -->
+            <div class="mb-3">
+                <label for="Diabetes" class="form-label">Diabetes</label>
+                <select name="Diabetes" class="form-select" required>
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                </select>
+            </div>
+
+            <!-- BMI -->
+            <!-- <div class="mb-3">
+                <label for="BMI" class="form-label">BMI</label>
+                <input type="number" step="0.1" name="BMI" class="form-control" required>
+            </div> -->
+
+            <!-- BMI (Auto-filled) -->
+            <!-- <div class="mb-3">
+                <label for="BMI" class="form-label">BMI</label>
+                <input type="number" step="0.1" name="BMI" id="bmiInput" class="form-control" readonly
+                    value="{{ user_profile.BMI|default_if_none:'' }}">
+            </div> -->
+
+            <!-- Fitness Goal -->
+            <div class="mb-3">
+                <label for="Fitness Goal" class="form-label">Fitness Goal</label>
+                <select name="Fitness Goal" class="form-select" required>
+                    <option value="Weight Gain">Weight Gain</option>
+                    <option value="Weight Loss">Weight Loss</option>
+                </select>
+            </div>
+
+            <!-- Fitness Type -->
+            <div class="mb-3">
+                <label for="Fitness Type" class="form-label">Fitness Type</label>
+                <select name="Fitness Type" class="form-select" required>
+                    <option value="Muscular Fitness">Muscular Fitness</option>
+                    <option value="Cardio Fitness">Cardio Fitness</option>
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="mt-4">
+                <button type="submit" class="btn btn-custom text-light w-100">
+                    Get Recommendations
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JavaScript to calculate BMI -->
+<script>
+    function calculateBMI() {
+        const height = parseFloat(document.getElementById("heightInput").value) / 100;  // Convert height to meters
+        const weight = parseFloat(document.getElementById("weightInput").value);
+
+        // Debugging: Check if the values are being captured
+        console.log("Height (m):", height);
+        console.log("Weight (kg):", weight);
+
+        if (height > 0 && weight > 0) {
+            const bmi = weight / (height * height);
+            document.getElementById("bmiInput").value = bmi.toFixed(2);  // Round to two decimal places
+        } else {
+            document.getElementById("bmiInput").value = '';  // Clear BMI field if height or weight is not valid
+        }
+    }
+</script>
+
+{% endblock %}

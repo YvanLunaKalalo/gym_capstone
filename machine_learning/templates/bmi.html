@@ -1,0 +1,68 @@
+{% extends 'master.html' %}
+
+{% load static %}
+
+{% block title %}
+<title>Flex Appeal || BMI</title>
+{% endblock %}
+
+{% block content %}
+
+<style type="text/css">
+    .video-overlay {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .caption {
+        text-align: center;
+        color: white;
+    }
+
+    .result-text {
+        margin-top: 20px;
+        font-weight: bold;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.6);
+        padding: 10px;
+        border-radius: 5px;
+        display: inline-block;
+    }
+</style>
+
+<div class="main-banner" id="top">
+    <video autoplay muted loop id="bg-video">
+        <source src="{% static 'images/gym-video(4).mp4' %}" type="video/mp4" />
+    </video>
+
+    <div class="video-overlay header-text">
+        <div class="caption">
+            <h2>BMI <em>Calculator</em></h2>
+
+            <form method="POST" action="{% url 'bmi' %}">
+                {% csrf_token %}
+                <label for="Gender">Gender:</label>
+                <select name="Gender" id="Gender">
+                    <option value="male" id="male" {% if request.POST.Gender == "male" %}selected{% endif %}>Male</option>
+                    <option value="female" id="female" {% if request.POST.Gender == "female" %}selected{% endif %}>Female</option>
+                </select><br><br>
+
+                <label for="Height">Height (in cm):</label>
+                <input type="number" name="Height" id="Height" value="{{ request.POST.Height }}" required><br><br>
+
+                <label for="Weight">Weight (in kg):</label>
+                <input type="number" name="Weight" id="Weight" value="{{ request.POST.Weight }}" required><br><br>
+
+                <input type="submit" value="Predict BMI">
+            </form>
+
+            {% if result %}
+                <h3 class="result-text">Your BMI Category: {{ result }}</h3>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

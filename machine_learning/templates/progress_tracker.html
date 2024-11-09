@@ -1,0 +1,142 @@
+{% extends 'master.html' %}
+
+{% load static %}
+
+{% block title %}
+<title>Flex Appeal || Progress Tracker</title>
+{% endblock %}
+
+{% block content %}
+
+<style type="text/css">
+    /* Flex styling for centering video overlay */
+    .video-overlay {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    /* Caption styling */
+    .caption {
+        text-align: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    /* Text styling for result section */
+    .result-text {
+        margin-top: 20px;
+        font-weight: bold;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.6);
+        padding: 10px;
+        border-radius: 5px;
+        display: inline-block;
+    }
+
+    /* Progress container for background and padding */
+    .progress-container {
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 25px;
+        border-radius: 12px;
+    }
+
+    /* Custom progress bar color */
+    .progress-bar-custom {
+        background-color: #ed563b;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    /* User profile list styling */
+    .user-profile ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .list-group-item {
+        font-size: 1rem;
+        padding: 12px 15px;
+        border: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Button styling */
+    .btn-custom {
+        background-color: #ed563b;
+        border: none;
+        padding: 12px;
+        text-transform: uppercase;
+        font-weight: bold;
+        letter-spacing: 1px;
+        transition: background-color 0.3s ease;
+        color: white;
+        margin-bottom: 20px;
+    }
+
+    .btn-custom:hover {
+        background-color: white;
+        color: #ed563b;
+    }
+</style>
+
+<div class="main-banner pt-5" id="top">
+    <div class="container mt-5">
+
+        <a href="{% url 'recommend' %}" class="btn btn-custom">
+            Go Back
+        </a>
+
+        <div class="card bg-dark text-white shadow-lg p-4 mb-5 rounded-lg">
+            <div class="card-body">
+                <!-- Title for the progress page -->
+                <h2 class="card-title text-center font-weight-bold text-uppercase mb-4" style="letter-spacing: 1.5px;">
+                    Progress for Workout: <em>{{ workout.Title }}</em>
+                </h2>
+
+                <!-- Progress section -->
+                <div class="progress-container mt-4">
+                    <h4 class="pb-3 text-uppercase font-weight-bold">Current Progress</h4>
+                    <div class="progress mb-3" style="height: 30px;">
+                        <div class="progress-bar progress-bar-custom" role="progressbar"
+                            style="width: {{ progress }}%;" aria-valuenow="{{ progress }}" aria-valuemin="0"
+                            aria-valuemax="100">
+                            {{ progress }}%
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User profile details -->
+                <div class="user-profile mt-5">
+                    <h4 class="text-uppercase font-weight-bold">User Profile Details</h4>
+                    <ul class="list-group list-group-flush mt-3">
+                        <li class="list-group-item bg-transparent text-white"><strong>Age:</strong> {{ user_profile.Age }}
+                        </li>
+                        <li class="list-group-item bg-transparent text-white"><strong>Gender:</strong> {{ user_profile.Sex }}
+                        </li>
+                        <!-- <li class="list-group-item bg-transparent text-white"><strong>Fitness Level:</strong> {{ user_profile.Level }}</li> -->
+                        <li class="list-group-item bg-transparent text-white"><strong>Progress:</strong> {{ progress }}%</li>
+                        <li class="list-group-item bg-transparent text-white"><strong>Date of Progress Update:</strong> {{ progress_date }}</li>
+                    </ul>
+                </div>
+
+                <!-- Buttons -->
+                <div class="mt-4 text-center">
+                    <a href="{% url 'recommend' %}" class="btn btn-custom text-light w-100">
+                        Back to Form
+                    </a>
+                </div>
+
+                <div class="mt-4 text-center">
+                    <a href="{% url 'index' %}" class="btn btn-custom text-light w-100">
+                        Back to Home
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
