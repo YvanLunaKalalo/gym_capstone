@@ -27,18 +27,18 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     'web-production-650c.up.railway.app',
-    'www.web-production-650c.up.railway.app',
 ]
 
 CSRF_COOKIE_SECURE = True  # Use only in production with HTTPS
 
 CSRF_TRUSTED_ORIGINS = [
     'https://web-production-650c.up.railway.app/',
-    'https://www.web-production-650c.up.railway.app/',  # If applicable
 ]
 
 if DEBUG:
      EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # Doing Development
+     SECURE_SSL_REDIRECT = False
+     SECURE_HSTS_SECONDS = 0
 
 # Application definition
 
@@ -117,6 +117,7 @@ SECURE_HSTS_PRELOAD = True
 
 # Use HTTPS redirect in production
 SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
