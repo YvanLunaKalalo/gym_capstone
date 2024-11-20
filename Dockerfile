@@ -7,7 +7,7 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     pkg-config \
-    libmysqlclient-dev \
+    libmariadb-dev-compat \
     libpq-dev \
     gcc \
     build-essential \
