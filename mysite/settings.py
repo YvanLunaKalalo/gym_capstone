@@ -26,15 +26,15 @@ SECRET_KEY = 'django-insecure-l#awhl+_(-h3z=!j1#wf=*+!%u2upmy0*(1m0x_%u0^pk58u8x
 DEBUG = False   
 
 ALLOWED_HOSTS = [
-    'web-production-806c8.up.railway.app',
-    'www.web-production-806c8.up.railway.app',
+    'web-production-a705e.up.railway.app',
+    'www.web-production-a705e.up.railway.app',
 ]
 
 CSRF_COOKIE_SECURE = True  # Use only in production with HTTPS
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://web-production-806c8.up.railway.app/',
-    'https://www.web-production-806c8.up.railway.app',  # If applicable
+    'https://web-production-a705e.up.railway.app/',
+    'https://www.web-production-a705e.up.railway.app',  # If applicable
 ]
 
 if DEBUG:
@@ -101,13 +101,14 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',  # Replace with your DB name
-        'USER': 'postgres',      # Replace with your DB user
-        'PASSWORD': 'xapCdakNftnckkEzsSvDvzKpvCSgYCcR',  # Replace with your DB password
-        'HOST': 'postgres.railway.internal',   # Replace with your database host
-        'PORT': '5432',        # Replace with your DB port
+        'NAME': 'your_database_name',
+        'USER': 'your_database_user',
+        'PASSWORD': 'your_database_password',
+        'HOST': 'postgres.railway.internal',  # or your actual host
+        'PORT': '5432',  # default PostgreSQL port
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
