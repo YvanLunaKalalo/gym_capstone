@@ -37,16 +37,6 @@ CSRF_TRUSTED_ORIGINS = [
     'https://www.web-production-650c.up.railway.app/',  # If applicable
 ]
 
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_HSTS_SECONDS = 3600  # Enable HTTP Strict Transport Security (HSTS)
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-
-# Use HTTPS redirect in production
-SECURE_SSL_REDIRECT = True
-
-
 if DEBUG:
      EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # Doing Development
 
@@ -119,6 +109,14 @@ DATABASES = {
     }
 }
 
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_HSTS_SECONDS = 3600  # Enable HTTP Strict Transport Security (HSTS)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# Use HTTPS redirect in production
+SECURE_SSL_REDIRECT = True
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
