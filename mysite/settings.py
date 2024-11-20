@@ -25,15 +25,14 @@ SECRET_KEY = 'django-insecure-l#awhl+_(-h3z=!j1#wf=*+!%u2upmy0*(1m0x_%u0^pk58u8x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False   
 
-ALLOWED_HOSTS = ['https://web-production-54a2b.up.railway.app/']
+ALLOWED_HOSTS = ['https://web-production-806c8.up.railway.app/']
 
 CSRF_COOKIE_SECURE = True  # Use only in production with HTTPS
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://web-production-54a2b.up.railway.app',
-    'https://www.web-production-54a2b.up.railway.app',  # If applicable
+    'https://web-production-806c8.up.railway.app/',
+    'https://www.web-production-806c8.up.railway.app',  # If applicable
 ]
-
 
 if DEBUG:
      EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # Doing Development
