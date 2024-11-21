@@ -2,6 +2,24 @@
 
 {% block extrahead %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Style for the chart container */
+        .chart-container {
+            width: 100%;
+            max-width: 900px;  /* Adjust the max-width as needed */
+            margin: 30px auto;  /* Centers the container horizontally and adds spacing */
+            padding: 20px;
+            background-color: #f9f9f9;  /* Light background color */
+            border-radius: 10px;  /* Rounded corners for a clean look */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Optional subtle shadow for effect */
+        }
+
+        /* Ensure the canvas element inside the container is responsive */
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -12,6 +30,7 @@
     {{ block.super }}
 
     <script>
+        // Get workout data passed from the admin view
         var workoutTitles = {{ workout_titles|safe }};
         var workoutCounts = {{ workout_counts|safe }};
         
