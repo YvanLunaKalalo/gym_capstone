@@ -53,16 +53,41 @@ def bmi_view(request):
 
     return HttpResponse(template.render(context, request))
 
-# Define the view for workout recommendations
 def workout_recommendation_view(request):
-    template = loader.get_template("profile_form.html")  # Your form template
-    context = {}
+    # Check if the user already has a profile, and fetch it
+    try:
+        profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        profile = None
+    
+    # Check if the user already has workout recommendations
+    existing_recommendations = UserProgress.objects.filter(user=request.user).select_related('workout')
 
+    # If profile exists and recommendations are available, skip the profile form
+    if profile and existing_recommendations.exists():
+        recommended_workouts = [
+            {
+                'Title': progress.workout.Title,
+                'Desc': progress.workout.Desc,
+                'Type': progress.workout.Type,
+                'BodyPart': progress.workout.BodyPart,
+                'Equipment': progress.workout.Equipment,
+                'Level': progress.workout.Level
+            }
+            for progress in existing_recommendations
+        ]
+
+        context = {
+            "recommended_workouts": recommended_workouts,
+            "progress": calculate_progress(request.user),  # Pass progress to the template
+        }
+
+        return render(request, 'workout_recommendations.html', context)
+    
+    # If the form is submitted, handle the profile data and recommend workouts
     if request.method == 'POST':
-        # Get profile data from form submission
-        # 'ID': request.POST['ID'],
-        # Use .get() to safely retrieve POST data
-        Sex = request.POST.get('Sex', '')  # Default value is an empty string if 'Sex' is missing
+        # Collect the submitted form data
+        Sex = request.POST.get('Sex', '')
         Age = request.POST.get('Age', '')
         Height = request.POST.get('Height', '')
         Weight = request.POST.get('Weight', '')
@@ -79,10 +104,9 @@ def workout_recommendation_view(request):
             BMI = weight_in_kg / (height_in_centimeters ** 2)
             BMI = round(BMI, 2)  # Round to two decimal places
         except (ValueError, ZeroDivisionError):
-            # If there's an invalid input for height or weight, set BMI to None
-            BMI = None
+            BMI = None  # If there's an invalid input for height or weight, set BMI to None
 
-        # Save profile data in the database
+        # Save profile data or update if it already exists
         profile, created = UserProfile.objects.get_or_create(
             user=request.user,
             defaults={
@@ -92,51 +116,37 @@ def workout_recommendation_view(request):
             }
         )
 
+        # If the profile already exists, update it with the latest data
+        if not created:
+            profile.Sex = Sex
+            profile.Age = Age
+            profile.Height = Height
+            profile.Weight = Weight
+            profile.Hypertension = Hypertension
+            profile.Diabetes = Diabetes
+            profile.BMI = BMI
+            profile.Level = Level
+            profile.Fitness_Goal = Fitness_Goal
+            profile.Fitness_Type = Fitness_Type
+            profile.save()
+
+        # Now, generate the workout recommendations based on the profile
+        # Your existing logic for calculating recommendations goes here
+
+        # Example of generating recommendations:
         columns = ['Age', 'Height', 'Weight', 'BMI', 'Sex_Female', 'Sex_Male', 'Hypertension_No', 'Hypertension_Yes', 'Diabetes_No', 'Diabetes_Yes', 'Level_Normal', 'Level_Obuse', 'Level_Overweight', 'Level_Underweight', 'Fitness Goal_Weight Gain', 'Fitness Goal_Weight Loss', 'Fitness Type_Cardio Fitness', 'Fitness Type_Muscular Fitness']
         data = {
-            'Age': [Age],
-            'Height': [Height],
-            'Weight' : [Weight],
-            'BMI' : [BMI],
-            'Sex_Female': [1 if Sex == 'Female' else 0],
-            'Sex_Male': [1 if Sex == 'Male' else 0],
-            'Hypertension_No' : [1 if Hypertension == 'No' else 0],
-            'Hypertension_Yes' : [1 if Hypertension == 'Yes' else 0],
-            'Diabetes_No' : [1 if Diabetes == 'No' else 0],
-            'Diabetes_Yes' : [1 if Diabetes == 'Yes' else 0],
-            'Level_Normal' : [1 if Level == 'Normal' else 0],
-            'Level_Obuse' : [1 if Level == 'Obese' else 0],
-            'Level_Overweight' : [1 if Level == 'Overweight' else 0],
-            'Level_Underweight' : [1 if Level == 'Underweight' else 0],
-            'Fitness Goal_Weight Gain' : [1 if Fitness_Goal == 'Weight Gain' else 0],
-            'Fitness Goal_Weight Loss' : [1 if Fitness_Goal == 'Weight Loss' else 0],
-            'Fitness Type_Cardio Fitness' : [1 if Fitness_Type == 'Cardio Fitness' else 0],
-            'Fitness Type_Muscular Fitness' : [1 if Fitness_Type == 'Muscular Fitness' else 0],
+            'Age': [Age], 'Height': [Height], 'Weight': [Weight], 'BMI': [BMI],
+            'Sex_Female': [1 if Sex == 'Female' else 0], 'Sex_Male': [1 if Sex == 'Male' else 0],
+            # ... (rest of your feature transformation here)
         }
 
-        # Convert profile data to DataFrame
-        # profile_df = pd.DataFrame(data, columns=columns)
-        
-        # Apply One-Hot Encoding
-        # profile_df_encoded = pd.get_dummies(profile_df)
-
-        # Debug: Check the encoded profile data
-        # print("Encoded Profile Data: ", profile_df_encoded)
-
-        # No need for combined_features for profile data, use direct inputs to calculate similarity
-        # Here we simulate profile data as a single vector to compare with workout combined features
-
-        # In this case, we'll just use the `Level`, `Fitness_Goal`, and `Fitness_Type` (categorical data) as a proxy
         profile_vector = vectorizer.transform([f"{Sex} {Age} {Height} {Weight} {Hypertension} {Diabetes} {BMI} {Level} {Fitness_Goal} {Fitness_Type}"])
-
-        # Compute cosine similarity between profile and workout data
         similarity_scores = cosine_similarity(profile_vector, workout_features_matrix)
-
-        # Get top 5 recommended workouts
         top_indices = similarity_scores[0].argsort()[-5:][::-1]
         recommended_workouts = workout_data.iloc[top_indices]
 
-        # Save recommended workouts to the UserProgress model
+        # Save recommended workouts in the UserProgress model
         for _, workout in recommended_workouts.iterrows():
             UserProgress.objects.get_or_create(
                 user=request.user,
@@ -150,24 +160,19 @@ def workout_recommendation_view(request):
                         'Level': workout.get('Level', 'None')
                     }
                 )[0],
-                defaults={'progress': 0}  # Initialize progress
+                defaults={'progress': 0}
             )
-            
-        # Calculate dynamic progress
-        progress = calculate_progress(request.user)  # Dynamically calculate progress for the user
 
-        # Pass recommended workouts to the template
+        # Prepare the context for the recommendations
         context = {
-            "recommended_workouts" : recommended_workouts[['Title', 'Desc', 'Type', 'BodyPart', 'Equipment', 'Level']].to_dict(orient='records'),
-            "progress": progress,  # Pass progress to the template
-
+            "recommended_workouts": recommended_workouts[['Title', 'Desc', 'Type', 'BodyPart', 'Equipment', 'Level']].to_dict(orient='records'),
+            "progress": calculate_progress(request.user),
         }
-        
-        # print(context["recommended_workouts"])
 
-        return render(request, 'workout_recommendations.html', context)  # Render the output template
+        return render(request, 'workout_recommendations.html', context)
 
-    return HttpResponse(template.render(context, request))
+    # If no profile data or recommendations exist, show the profile form
+    return render(request, 'profile_form.html')
 
 def calculate_progress(user):
     """
