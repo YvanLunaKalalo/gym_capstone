@@ -1,9 +1,9 @@
-{% extends 'master.html' %}
+{% extends 'master_login_&_register.html' %}
 
 {% load static %}
 
 {% block title %}
-<title>Flex Appeal || Login</title>
+<title>Flex Appeal || Update</title>
 {% endblock %}
 
 {% block content %}
@@ -136,6 +136,11 @@
         </div>
 
       </form>
+
+      <a href="{% url 'index' %}" class="btn btn-primary mt-3" style="background-color: #ed563b; border: none; padding: 12px 20px; font-size: 16px; display: block; text-align: center;">
+        Go to Home
+      </a>  
+
     </div>
   </div>
 </div>
