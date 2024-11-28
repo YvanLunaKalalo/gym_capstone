@@ -151,7 +151,7 @@ body {
   margin-bottom: 80px;
 }
 
-.section-heading h2 {
+.section-heading h3 {
   font-size: 28px;
   font-weight: 800;
   color: #232d39;
@@ -161,7 +161,7 @@ body {
   margin-bottom: 0px;
 }
 
-.section-heading h2 em {
+.section-heading h3 em {
   font-style: normal;
   color: #ed563b;
 }
@@ -170,7 +170,7 @@ body {
   margin: 20px auto;
 }
 
-.dark-bg h2 {
+.dark-bg h3 {
   color: #fff;
 }
 
