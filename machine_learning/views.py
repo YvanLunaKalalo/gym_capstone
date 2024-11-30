@@ -64,7 +64,6 @@ def workout_recommendation_view(request):
     existing_recommendations = UserProgress.objects.filter(user=request.user).select_related('workout')
 
     if profile and existing_recommendations.exists():
-        # If profile exists and recommendations are available, show the recommendations
         recommended_workouts = [
             {
                 'Title': progress.workout.Title,
@@ -73,20 +72,21 @@ def workout_recommendation_view(request):
                 'BodyPart': progress.workout.BodyPart,
                 'Equipment': progress.workout.Equipment,
                 'Level': progress.workout.Level,
-                'is_completed': progress.is_completed  # Include completion status
+                'is_completed': progress.is_completed,
+                'id': progress.workout.id  # Add workout ID for marking completion
             }
             for progress in existing_recommendations
         ]
 
         context = {
             "recommended_workouts": recommended_workouts,
-            "progress": calculate_progress(request.user),  # Pass progress to the template
+            "progress": calculate_progress(request.user),
         }
 
         return render(request, 'workout_recommendations.html', context)
     
     if request.method == 'POST':
-        # Collect the submitted form data
+        # Collect form data
         Sex = request.POST.get('Sex', '')
         Age = request.POST.get('Age', '')
         Height = request.POST.get('Height', '')
@@ -97,22 +97,22 @@ def workout_recommendation_view(request):
         Fitness_Goal = request.POST.get('Fitness Goal', '')
         Fitness_Type = request.POST.get('Fitness Type', '')
 
-        # Calculate BMI (BMI = weight in kg / (height in meters)^2)
+        # Calculate BMI
         try:
-            height_in_centimeters = float(Height) / 100  # Convert height from cm to meters
-            weight_in_kg = float(Weight)  # Convert weight to kg
-            BMI = weight_in_kg / (height_in_centimeters ** 2)
-            BMI = round(BMI, 2)  # Round to two decimal places
+            height_in_meters = float(Height) / 100
+            weight_in_kg = float(Weight)
+            BMI = weight_in_kg / (height_in_meters ** 2)
+            BMI = round(BMI, 2)
         except (ValueError, ZeroDivisionError):
             BMI = None
 
-        # Generate the workout recommendations (Example logic)
+        # Generate workout recommendations
         profile_vector = vectorizer.transform([f"{Sex} {Age} {Height} {Weight} {Hypertension} {Diabetes} {BMI} {Level} {Fitness_Goal} {Fitness_Type}"])
         similarity_scores = cosine_similarity(profile_vector, workout_features_matrix)
         top_indices = similarity_scores[0].argsort()[-5:][::-1]
         recommended_workouts = workout_data.iloc[top_indices]
 
-        # Save recommended workouts in the UserProgress model (for each user separately)
+        # Save recommendations for the user in UserProgress
         for _, workout in recommended_workouts.iterrows():
             workout_obj, created = Workout.objects.get_or_create(
                 Title=workout['Title'],
@@ -121,10 +121,9 @@ def workout_recommendation_view(request):
                     'Type': workout['Type'],
                     'BodyPart': workout['BodyPart'],
                     'Equipment': workout.get('Equipment', 'None'),
-                    'Level': workout.get('Level', 'None')
+                    'Level': workout.get('Level', 'Beginner')
                 }
             )
-
             UserProgress.objects.get_or_create(
                 user=request.user,
                 workout=workout_obj,
@@ -143,15 +142,10 @@ def workout_recommendation_view(request):
 
 @login_required
 def mark_workout_done(request, workout_id):
-    # Fetch the workout progress record for the current user and specified workout
     progress = get_object_or_404(UserProgress, user=request.user, workout_id=workout_id)
-
-    # Mark the workout as completed
     progress.is_completed = True
-    progress.progress = 100  # Set progress to 100%
+    progress.progress = 100  # Mark progress as completed
     progress.save()
-
-    # Redirect back to the workout recommendations page
     return redirect('workout_recommendation_view')
 
 
