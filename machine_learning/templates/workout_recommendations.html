@@ -55,8 +55,6 @@
                     <p class="mb-1"><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
                     <p class="mb-1"><strong>Equipment:</strong> {{ workout.Equipment }}</p>
                     <p class="mb-1"><strong>Level:</strong> {{ workout.Level }}</p>
-                    <p class="mb-1"><strong>Progress:</strong> {{ workout.progress }}</p>
-
                   </div>
                   <form method="POST" action="{% url 'update_progress' workout.Title %}" class="mt-4">
                     {% csrf_token %}
