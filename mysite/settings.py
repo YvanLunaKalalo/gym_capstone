@@ -109,6 +109,21 @@ DATABASES = {
     }
 }
 
+# Cache Configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': BASE_DIR / 'cache',  # Directory where cache files will be stored
+    }
+}
+
+# Session Configuration
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'  # This uses the database for sessions with caching
+SESSION_CACHE_ALIAS = 'default'  # This specifies the cache alias to use for session data
+SESSION_COOKIE_AGE = 3600  # Sets session expiration time in seconds (e.g., 1 hour)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Session expires when the browser is closed
+SESSION_SAVE_EVERY_REQUEST = True  # Save session data to the database on every request
+
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_HSTS_SECONDS = 3600  # Enable HTTP Strict Transport Security (HSTS)
