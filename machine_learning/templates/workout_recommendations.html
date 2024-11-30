@@ -55,13 +55,18 @@
                     <p class="mb-1"><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
                     <p class="mb-1"><strong>Equipment:</strong> {{ workout.Equipment }}</p>
                     <p class="mb-1"><strong>Level:</strong> {{ workout.Level }}</p>
+                    <p class="mb-1"><strong>Progress:</strong> {{ workout.progress }}%</p>
                   </div>
-                  <form method="POST" action="{% url 'update_progress' workout.Title %}" class="mt-4">
+
+                  <a href="{% url 'update_progress' workout.Title %}">Update Progress</a>
+
+                  <!-- <form method="POST" action="{% url 'update_progress' workout.Title %}" class="mt-4">
                     {% csrf_token %}
-                    <input type="hidden" name="increment" value="10"> <!-- Adjust increment value as needed -->
-                    <button type="submit" class="btn btn-custom btn-lg w-100 text-uppercase font-weight-bold" style="letter-spacing: 1px;">Track Progress</button>
-                  </form>
+                    <input type="hidden" name="increment" value="10"> Adjust increment value as needed -->
+                    <!-- <button type="submit" class="btn btn-custom btn-lg w-100 text-uppercase font-weight-bold" style="letter-spacing: 1px;">Track Progress</button> -->
+                  <!-- </form> -->
                 </div>
+                <p>Your overall progress: {{ progress }}%</p>
               </div>
             </div>
           </div>
