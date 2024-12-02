@@ -7,6 +7,8 @@ from django.conf import settings
 from sklearn.metrics.pairwise import cosine_similarity
 from .models import Workout, UserProfile, UserProgress
 import time
+from datetime import timedelta
+from django.utils import timezone
 from django.http import JsonResponse
 
 # Load the pre-trained model
@@ -236,62 +238,72 @@ def update_progress_view(request, workout_title):
 
     return render(request, 'progress_tracker.html', context)
 
+import time
+from datetime import timedelta
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from .models import UserProgress, Workout
+
 def workout_session_view(request, workout_title):
-    # Get the workout by its Title
+    # Get the workout by its title
     workout = get_object_or_404(Workout, Title=workout_title)
+    user_profile = get_object_or_404(UserProfile, user=request.user)
     
     # Fetch or initialize the user's progress for this workout
     progress_entry, created = UserProgress.objects.get_or_create(
         user=request.user, workout=workout,
-        defaults={'progress': 0},  # Default progress when starting
+        defaults={'progress': 0, 'start_time': timezone.now()}
     )
 
     if request.method == 'POST':
-        action = request.POST.get('action')
+        action = request.POST.get('action')  # Either 'start' or 'stop'
+        
         if action == 'start':
-            # Start the timer (you can store the start time in the session or a model)
-            request.session['start_time'] = time.time()  # Store the current time when the stopwatch starts
-            return JsonResponse({'status': 'started'})
+            # Start the stopwatch
+            progress_entry.start_time = timezone.now()
+            progress_entry.save()
         
-        elif action == 'pause':
-            # Calculate time spent and store it
-            start_time = request.session.get('start_time', None)
-            if start_time:
-                elapsed_time = time.time() - start_time  # Time spent in seconds
-                progress_entry.progress += elapsed_time
-                progress_entry.save()
-                return JsonResponse({'status': 'paused', 'time': elapsed_time})
-        
-        elif action == 'finish':
-            # End the session and move to the next workout
-            start_time = request.session.get('start_time', None)
-            if start_time:
-                elapsed_time = time.time() - start_time
-                progress_entry.progress += elapsed_time
+        elif action == 'stop':
+            # Stop the stopwatch and calculate the time spent
+            if progress_entry.start_time:
+                elapsed_time = timezone.now() - progress_entry.start_time
+                progress_entry.progress = min((elapsed_time.total_seconds() // 60), 100)  # Convert to minutes
                 progress_entry.save()
                 
-                # Move to the next workout (or go to dashboard if this is the last workout)
-                next_workout = Workout.objects.filter(Title__gt=workout_title).first()
-                if next_workout:
-                    return redirect('workout_session', workout_title=next_workout.Title)
-                else:
-                    return redirect('workout_dashboard')  # Go to the dashboard after all workouts are done
-                
-    return render(request, 'workout_session.html', {'workout': workout})
+                # Check if this was the last workout
+                all_workouts_completed = UserProgress.objects.filter(user=request.user, progress=100).count()
+                total_workouts = Workout.objects.count()
+
+                if all_workouts_completed == total_workouts:
+                    return redirect('workout_dashboard')
+
+    # Fetch the elapsed time if workout is being tracked
+    elapsed_time = None
+    if progress_entry.start_time:
+        elapsed_time = timezone.now() - progress_entry.start_time
+
+    context = {
+        'workout': workout,
+        'progress': progress_entry.progress,
+        'elapsed_time': elapsed_time,
+    }
+    
+    return render(request, 'workout_session.html', context)
 
 def workout_dashboard_view(request):
-    # Get the user's progress for all workouts
+    # Get the user's progress and calculate the summary
     user_progress = UserProgress.objects.filter(user=request.user)
+    
     total_workouts = user_progress.count()
-    total_time = sum(progress_entry.progress for progress_entry in user_progress)
-
-    # Convert total time to minutes and seconds
-    minutes = total_time // 60
-    seconds = total_time % 60
+    completed_workouts = user_progress.filter(progress=100).count()
+    total_time_spent = sum([progress_entry.progress for progress_entry in user_progress])
 
     context = {
         'total_workouts': total_workouts,
-        'total_time': f"{int(minutes)}:{int(seconds):02}",
+        'completed_workouts': completed_workouts,
+        'total_time_spent': timedelta(seconds=total_time_spent * 60),  # Convert minutes to timedelta
     }
 
     return render(request, 'workout_dashboard.html', context)
+
+

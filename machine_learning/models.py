@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.contrib.auth.models import User
 
 class Workout(models.Model):
     Title = models.CharField(max_length=255)
@@ -42,6 +43,7 @@ class UserProgress(models.Model):
     progress = models.PositiveIntegerField()  # Percentage or count of completed workouts
     date = models.DateField(auto_now_add=True)
     progress_date = models.DateField(auto_now=True)  # Automatically update the date whenever the progress is updated
+    start_time = models.DateTimeField(null=True, blank=True)  # Track when workout starts
 
     def __str__(self):
         return f"{self.user.username} - {self.workout.Title} - {self.progress}%"
