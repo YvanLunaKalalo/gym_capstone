@@ -633,7 +633,7 @@ banner
   transform: translate(-50%,-50%);
 }
 
-.main-banner .caption h3 {
+.main-banner .caption h6 {
   margin-top: 0px;
   font-size: 18px;
   text-transform: uppercase;
