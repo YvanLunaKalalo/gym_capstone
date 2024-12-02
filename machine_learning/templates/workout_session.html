@@ -3,45 +3,91 @@
 {% load static %}
 
 {% block title %}
-<title>Flex Appeal || Workout Session</title>
+<title>Flex Appeal || Workout Session - {{ workout.Title }}</title>
 {% endblock %}
 
 {% block content %}
+<div class="container">
+    <h2 class="text-center">{{ workout.Title }}</h2>
+    <h5 class="text-center">Time: <span id="timeDisplay">00:00</span></h5>
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 text-center">
-            <h1 class="mb-4">Workout: {{ workout.Title }}</h1>
-            <p class="lead">{{ workout.Desc }}</p>
-
-            <h3>Time Left: <span id="timer">60</span> seconds</h3> <!-- Timer starts at 60 seconds -->
-
-            <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
-            <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
-
-            <form method="GET" action="{% url 'workout_session' %}">
-                <input type="hidden" name="index" value="{{ index|add:1 }}">  <!-- Increment the workout index -->
-                <button type="submit" id="nextWorkoutButton" class="btn btn-lg btn-primary mt-3" style="display:none;">Next Workout</button>
-            </form>
-        </div>
-    </div>
+    <button id="startBtn" class="btn btn-success">Start</button>
+    <button id="pauseBtn" class="btn btn-warning" style="display:none;">Pause</button>
+    <button id="finishBtn" class="btn btn-danger" style="display:none;">Finish</button>
 </div>
 
 <script>
-// Timer logic
-var timeLeft = 60;  // Initial countdown time in seconds
-var timerElement = document.getElementById('timer');
-var nextWorkoutButton = document.getElementById('nextWorkoutButton');
+    let timer;
+    let seconds = 0;
+    let isRunning = false;
 
-var timer = setInterval(function() {
-    timeLeft--;
-    timerElement.textContent = timeLeft;
+    document.getElementById('startBtn').addEventListener('click', function() {
+        startTimer();
+        fetch("{% url 'workout_session' workout.Title %}", {
+            method: 'POST',
+            body: new URLSearchParams({
+                'action': 'start'
+            }),
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+    });
 
-    if (timeLeft <= 0) {
-        clearInterval(timer);  // Stop the timer
-        nextWorkoutButton.style.display = 'block';  // Show the "Next Workout" button
+    document.getElementById('pauseBtn').addEventListener('click', function() {
+        pauseTimer();
+        fetch("{% url 'workout_session' workout.Title %}", {
+            method: 'POST',
+            body: new URLSearchParams({
+                'action': 'pause'
+            }),
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        }).then(response => response.json()).then(data => {
+            if (data.status === 'paused') {
+                console.log('Paused at: ' + data.time);
+            }
+        });
+    });
+
+    document.getElementById('finishBtn').addEventListener('click', function() {
+        stopTimer();
+        fetch("{% url 'workout_session' workout.Title %}", {
+            method: 'POST',
+            body: new URLSearchParams({
+                'action': 'finish'
+            }),
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+    });
+
+    function startTimer() {
+        isRunning = true;
+        document.getElementById('startBtn').style.display = 'none';
+        document.getElementById('pauseBtn').style.display = 'inline-block';
+        document.getElementById('finishBtn').style.display = 'inline-block';
+
+        timer = setInterval(function() {
+            seconds++;
+            let minutes = Math.floor(seconds / 60);
+            let remainingSeconds = seconds % 60;
+            document.getElementById('timeDisplay').innerText = 
+                String(minutes).padStart(2, '0') + ':' + String(remainingSeconds).padStart(2, '0');
+        }, 1000);
     }
-}, 1000);  // Run the function every 1 second
-</script>
 
+    function pauseTimer() {
+        isRunning = false;
+        clearInterval(timer);
+        document.getElementById('startBtn').style.display = 'inline-block';
+        document.getElementById('pauseBtn').style.display = 'none';
+    }
+
+    function stopTimer() {
+        clearInterval(timer);
+    }
+</script>
 {% endblock %}

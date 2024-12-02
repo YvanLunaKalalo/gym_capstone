@@ -1,22 +1,17 @@
 {% extends 'master.html' %}
 
+{% load static %}
+
 {% block title %}
 <title>Flex Appeal || Workout Dashboard</title>
 {% endblock %}
 
 {% block content %}
 
-<div class="container mt-5">
-    <h1>Your Workout Progress</h1>
-    <p>Total Progress: {{ progress }}%</p>
-
-    <ul class="list-group mt-4">
-        {% for workout in completed_workouts %}
-        <li class="list-group-item">
-            <strong>{{ workout.workout.Title }}</strong> - {{ workout.progress }}% completed
-        </li>
-        {% endfor %}
-    </ul>
+<div class="container">
+    <h2 class="text-center">Workout Dashboard</h2>
+    <p><strong>Total Workouts Completed:</strong> {{ total_workouts }}</p>
+    <p><strong>Total Time Spent:</strong> {{ total_time }} minutes</p>
 </div>
 
 {% endblock %}
