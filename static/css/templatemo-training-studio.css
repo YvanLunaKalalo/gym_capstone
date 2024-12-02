@@ -633,7 +633,7 @@ banner
   transform: translate(-50%,-50%);
 }
 
-.main-banner .caption h4 {
+.main-banner .caption h6 {
   margin-top: 0px;
   font-size: 18px;
   text-transform: uppercase;
@@ -642,7 +642,7 @@ banner
   letter-spacing: 0.5px;
 }
 
-.main-banner .caption h2 {
+.main-banner .caption h4 {
   margin-top: 30px;
   margin-bottom: 25px;
   font-size: 84px;
