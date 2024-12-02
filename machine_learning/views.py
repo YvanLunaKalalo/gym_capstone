@@ -136,20 +136,25 @@ def workout_recommendation_view(request):
         top_indices = similarity_scores[0].argsort()[-5:][::-1]
         recommended_workouts = workout_data.iloc[top_indices]
 
-        # Save recommended workouts to the UserProgress model
+        # Save recommended workouts to the UserProgress model for the specific user only
         for _, workout in recommended_workouts.iterrows():
+            # Get or create the workout for the specific user context
+            workout_obj, created = Workout.objects.get_or_create(
+                Title=workout['Title'],
+                user=request.user,  # Associate workout with the user
+                defaults={
+                    'Desc': workout['Desc'],
+                    'Type': workout['Type'],
+                    'BodyPart': workout['BodyPart'],
+                    'Equipment': workout.get('Equipment', 'None'),
+                    'Level': workout.get('Level', 'None')
+                }
+            )
+
+            # Link workout with UserProgress, exclusive to this user
             UserProgress.objects.get_or_create(
                 user=request.user,
-                workout=Workout.objects.get_or_create(
-                    Title=workout['Title'],
-                    defaults={
-                        'Desc': workout['Desc'],
-                        'Type': workout['Type'],
-                        'BodyPart': workout['BodyPart'],
-                        'Equipment': workout.get('Equipment', 'None'),
-                        'Level': workout.get('Level', 'None')
-                    }
-                )[0],
+                workout=workout_obj,
                 defaults={'progress': 0}  # Initialize progress
             )
             
@@ -178,8 +183,8 @@ def calculate_progress(user):
     user_profile = UserProfile.objects.get(user=user)
 
     # Example calculation: Assume progress is based on the percentage of workouts completed
-    total_workouts = Workout.objects.count()  # Total available workouts
-    completed_workouts = UserProgress.objects.filter(user=user, progress=100).count()  # Workouts completed by user
+    total_workouts = Workout.objects.filter(user=user).count()  # Count user-specific workouts
+    completed_workouts = UserProgress.objects.filter(user=user, progress=100).count()  # Completed workouts for user
 
     if total_workouts == 0:
         return 0
@@ -198,7 +203,7 @@ def calculate_progress(user):
 
 def update_progress_view(request, workout_title):
     # Get the workout by its Title
-    workout = get_object_or_404(Workout, Title=workout_title)
+    workout = get_object_or_404(Workout, Title=workout_title, user=request.user)  # Ensure workout belongs to the user
     
     # Get the user profile
     user_profile = get_object_or_404(UserProfile, user=request.user)
