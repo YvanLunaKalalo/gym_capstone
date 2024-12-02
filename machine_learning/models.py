@@ -44,7 +44,6 @@ class UserProgress(models.Model):
     progress_date = models.DateField(auto_now=True)  # Automatically update the date whenever the progress is updated
     unique_together = ('user', 'workout')  # Ensure a user can only have one progress record per workout
 
-    
     def __str__(self):
         return f"{self.user.username} - {self.workout.Title} - {self.progress}%"
     
