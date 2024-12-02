@@ -136,25 +136,21 @@ def workout_recommendation_view(request):
         top_indices = similarity_scores[0].argsort()[-5:][::-1]
         recommended_workouts = workout_data.iloc[top_indices]
 
-        # Save recommended workouts to the UserProgress model
+        # Save recommended workouts in the UserProgress model
         for _, workout in recommended_workouts.iterrows():
-            # Get or create the workout instance
-            workout_instance, created = Workout.objects.get_or_create(
-                Title=workout['Title'],
-                defaults={
-                    'Desc': workout['Desc'],
-                    'Type': workout['Type'],
-                    'BodyPart': workout['BodyPart'],
-                    'Equipment': workout.get('Equipment', 'None'),
-                    'Level': workout.get('Level', 'None')
-                }
-            )
-
-            # Now, save the UserProgress entry specific to the logged-in user
             UserProgress.objects.get_or_create(
-                user=request.user,  # Ensure the workout is tied to the logged-in user
-                workout=workout_instance,  # Tie the workout to the specific instance
-                defaults={'progress': 0}  # Initialize progress
+                user=request.user,
+                workout=Workout.objects.get_or_create(
+                    Title=workout['Title'],
+                    defaults={
+                        'Desc': workout['Desc'],
+                        'Type': workout['Type'],
+                        'BodyPart': workout['BodyPart'],
+                        'Equipment': workout.get('Equipment', 'None'),
+                        'Level': workout.get('Level', 'None')
+                    }
+                )[0],
+                defaults={'progress': 0}
             )
             
         # Calculate dynamic progress
