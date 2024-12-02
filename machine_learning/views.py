@@ -6,7 +6,8 @@ import pandas as pd
 from django.conf import settings
 from sklearn.metrics.pairwise import cosine_similarity
 from .models import Workout, UserProfile, UserProgress
-from django.utils import timezone
+import time
+from django.http import JsonResponse
 
 # Load the pre-trained model
 model1 = load('./Saved_Models/model1.joblib') # BMI
@@ -296,33 +297,62 @@ def update_progress_view(request, workout_title):
 
     return render(request, 'progress_tracker.html', context)
 
-def workout_session_view(request):
-    workouts = request.session.get('recommended_workouts', [])  # Fetch workouts from session
+def workout_session_view(request, workout_title):
+    # Get the workout by its Title
+    workout = get_object_or_404(Workout, Title=workout_title)
+    
+    # Fetch or initialize the user's progress for this workout
+    progress_entry, created = UserProgress.objects.get_or_create(
+        user=request.user, workout=workout,
+        defaults={'progress': 0},  # Default progress when starting
+    )
 
-    # Get current workout index, or default to the first one (index 0)
-    index = int(request.GET.get('index', 0))
-    
-    if index >= len(workouts):  # All workouts are completed
-        return redirect('workout_dashboard')  # Redirect to the dashboard
-
-    # Get current workout
-    current_workout = workouts[index]
-    
-    context = {
-        'workout': current_workout,
-        'index': index,
-        'total_workouts': len(workouts),
-    }
-    
-    return render(request, 'workout_session.html', context)
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'start':
+            # Start the timer (you can store the start time in the session or a model)
+            request.session['start_time'] = time.time()  # Store the current time when the stopwatch starts
+            return JsonResponse({'status': 'started'})
+        
+        elif action == 'pause':
+            # Calculate time spent and store it
+            start_time = request.session.get('start_time', None)
+            if start_time:
+                elapsed_time = time.time() - start_time  # Time spent in seconds
+                progress_entry.progress += elapsed_time
+                progress_entry.save()
+                return JsonResponse({'status': 'paused', 'time': elapsed_time})
+        
+        elif action == 'finish':
+            # End the session and move to the next workout
+            start_time = request.session.get('start_time', None)
+            if start_time:
+                elapsed_time = time.time() - start_time
+                progress_entry.progress += elapsed_time
+                progress_entry.save()
+                
+                # Move to the next workout (or go to dashboard if this is the last workout)
+                next_workout = Workout.objects.filter(Title__gt=workout_title).first()
+                if next_workout:
+                    return redirect('workout_session', workout_title=next_workout.Title)
+                else:
+                    return redirect('workout_dashboard')  # Go to the dashboard after all workouts are done
+                
+    return render(request, 'workout_session.html', {'workout': workout})
 
 def workout_dashboard_view(request):
-    # Fetch completed workouts for this user
-    completed_workouts = UserProgress.objects.filter(user=request.user)
-    
+    # Get the user's progress for all workouts
+    user_progress = UserProgress.objects.filter(user=request.user)
+    total_workouts = user_progress.count()
+    total_time = sum(progress_entry.progress for progress_entry in user_progress)
+
+    # Convert total time to minutes and seconds
+    minutes = total_time // 60
+    seconds = total_time % 60
+
     context = {
-        'completed_workouts': completed_workouts,
-        'progress': calculate_progress(request.user)  # Calculate progress for the user
+        'total_workouts': total_workouts,
+        'total_time': f"{int(minutes)}:{int(seconds):02}",
     }
 
     return render(request, 'workout_dashboard.html', context)
