@@ -25,22 +25,19 @@ def index_view(request):
     return HttpResponse(template.render(context, request))
 
 def dashboard_view(request):
-    workouts = Workout.objects.all()  # Get all workouts
-    user_profile = None
-    user_progress = None
-    
-    if request.user.is_authenticated:
-        try:
-            user_profile = UserProfile.objects.get(user=request.user)  # Get user's profile
-        except UserProfile.DoesNotExist:
-            user_profile = None  # If profile doesn't exist, keep it None
-        
-        user_progress = UserProgress.objects.filter(user=request.user)  # Get user's progress
-    
+    # Get the user profile for the logged-in user
+    user_profile = UserProfile.objects.filter(user=request.user).first()
+
+    # Fetch only the workouts and progress associated with the logged-in user
+    user_progress = UserProgress.objects.filter(user=request.user)
+
+    # Filter recommended workouts from UserProgress model
+    workouts = [progress.workout for progress in user_progress]
+
     context = {
-        'workouts': workouts,
         'user_profile': user_profile,
+        'workouts': workouts,
         'user_progress': user_progress,
     }
-    
+
     return render(request, 'dashboard.html', context)
