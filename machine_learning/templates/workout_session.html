@@ -1,0 +1,23 @@
+{% extends 'master.html' %}
+
+{% load static %}
+
+{% block content %}
+<h1>{{ workout.Title }}</h1>
+<p>{{ workout.Desc }}</p>
+
+<p>Progress: {{ progress }}%</p>
+<p>{{ feedback }}</p>
+
+{% if completed_time %}
+    <p>Workout completed at: {{ completed_time }}</p>
+{% else %}
+    <form method="post">
+        {% csrf_token %}
+        <label for="increment">Update Progress:</label>
+        <input type="number" name="increment" min="0" max="100" step="10" required>
+        <button type="submit">Update</button>
+    </form>
+{% endif %}
+
+{% endblock %}

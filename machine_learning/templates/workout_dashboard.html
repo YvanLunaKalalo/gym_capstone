@@ -1,0 +1,21 @@
+{% extends 'master.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<h1>Workout Dashboard</h1>
+<p>Overall Progress: {{ overall_progress }}%</p>
+
+<h2>Completed Workouts</h2>
+<ul>
+    {% for workout in completed_workouts %}
+        <li>
+            {{ workout.workout.Title }} - Completed at {{ workout.completed_time|date:"Y-m-d H:i" }}
+        </li>
+    {% endfor %}
+</ul>
+
+{% endif %}
+
+{% endblock %}
