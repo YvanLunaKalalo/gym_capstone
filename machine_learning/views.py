@@ -158,6 +158,8 @@ def workout_recommendation_view(request):
             
         # Calculate dynamic progress
         progress = calculate_progress(request.user)  # Dynamically calculate progress for the user
+        
+        request.session['recommended_workouts'] = recommended_workouts.to_dict(orient='records')  # Store in session
 
         # Pass recommended workouts to the template
         context = {
@@ -294,62 +296,33 @@ def update_progress_view(request, workout_title):
 
     return render(request, 'progress_tracker.html', context)
 
-def workout_session_view(request, workout_title):
-    workout = get_object_or_404(Workout, Title=workout_title)
+def workout_session_view(request):
+    workouts = request.session.get('recommended_workouts', [])  # Fetch workouts from session
 
-    # Get or initialize progress for the current workout
-    progress_entry, created = UserProgress.objects.get_or_create(
-        user=request.user,
-        workout=workout,
-        defaults={'progress': 0, 'start_time': timezone.now()},
-    )
+    # Get current workout index, or default to the first one (index 0)
+    index = int(request.GET.get('index', 0))
+    
+    if index >= len(workouts):  # All workouts are completed
+        return redirect('workout_dashboard')  # Redirect to the dashboard
 
-    if request.method == 'POST':
-        # Get increment value from form
-        increment = int(request.POST.get('increment', 0))
-
-        # Update progress, ensure it doesn't exceed 100%
-        progress_entry.progress = min(progress_entry.progress + increment, 100)
-        progress_entry.save()
-
-        # If workout completed (100% progress), mark completion time
-        if progress_entry.progress == 100 and not progress_entry.completed_time:
-            progress_entry.completed_time = timezone.now()
-            progress_entry.save()
-
+    # Get current workout
+    current_workout = workouts[index]
+    
     context = {
-        'workout': workout,
-        'progress': progress_entry.progress,
-        'completed_time': progress_entry.completed_time,
-        'feedback': get_workout_feedback(progress_entry.progress),
+        'workout': current_workout,
+        'index': index,
+        'total_workouts': len(workouts),
     }
-
+    
     return render(request, 'workout_session.html', context)
 
-def get_workout_feedback(progress):
-    """Provide real-time feedback based on progress."""
-    if progress < 50:
-        return "Keep pushing, you're halfway there!"
-    elif progress < 100:
-        return "Almost done, stay focused!"
-    else:
-        return "Workout complete! Great job!"
-    
-    from django.shortcuts import render
-from .models import UserProgress
-
 def workout_dashboard_view(request):
-    # Fetch all completed workouts for the user
-    completed_workouts = UserProgress.objects.filter(user=request.user, progress=100).order_by('-completed_time')
-
-    # Calculate overall user progress
-    total_workouts = UserProgress.objects.filter(user=request.user).count()
-    completed_count = completed_workouts.count()
-    overall_progress = (completed_count / total_workouts * 100) if total_workouts > 0 else 0
-
+    # Fetch completed workouts for this user
+    completed_workouts = UserProgress.objects.filter(user=request.user)
+    
     context = {
         'completed_workouts': completed_workouts,
-        'overall_progress': overall_progress,
+        'progress': calculate_progress(request.user)  # Calculate progress for the user
     }
 
     return render(request, 'workout_dashboard.html', context)
