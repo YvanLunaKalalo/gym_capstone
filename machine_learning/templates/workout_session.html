@@ -1,34 +1,47 @@
 {% extends 'master.html' %}
 
+{% load static %}
+
 {% block title %}
-<title>Workout Session - {{ workout.Title }}</title>
+<title>Workout Session</title>
 {% endblock %}
 
 {% block content %}
-<div class="container pt-5">
-  <h2 class="text-center">Tracking Your Workout: {{ workout.Title }}</h2>
-  
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <h4>Progress: {{ progress }} %</h4>
-      
-      <div>
-        {% if elapsed_time %}
-        <p><strong>Time Elapsed:</strong> {{ elapsed_time|timesince }}</p>
-        {% else %}
-        <p><strong>Time Elapsed:</strong> 0 min</p>
-        {% endif %}
-      </div>
-      
-      <form method="POST">
-        {% csrf_token %}
-        {% if progress < 100 %}
-          <button type="submit" name="action" value="start" class="btn btn-primary">Start Workout</button>
-        {% else %}
-          <button type="submit" name="action" value="stop" class="btn btn-success">Complete Workout</button>
-        {% endif %}
-      </form>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <h1 class="mb-4">Workout: {{ workout.Title }}</h1>
+            <p class="lead">{{ workout.Desc }}</p>
+
+            <h3>Time Left: <span id="timer">60</span> seconds</h3> <!-- Timer starts at 60 seconds -->
+
+            <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
+            <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
+
+            <form method="GET" action="{% url 'workout_session' %}">
+                <input type="hidden" name="index" value="{{ index|add:1 }}">  <!-- Increment the workout index -->
+                <button type="submit" id="nextWorkoutButton" class="btn btn-lg btn-primary mt-3" style="display:none;">Next Workout</button>
+            </form>
+        </div>
     </div>
-  </div>
 </div>
+
+<script>
+// Timer logic
+var timeLeft = 60;  // Initial countdown time in seconds
+var timerElement = document.getElementById('timer');
+var nextWorkoutButton = document.getElementById('nextWorkoutButton');
+
+var timer = setInterval(function() {
+    timeLeft--;
+    timerElement.textContent = timeLeft;
+
+    if (timeLeft <= 0) {
+        clearInterval(timer);  // Stop the timer
+        nextWorkoutButton.style.display = 'block';  // Show the "Next Workout" button
+    }
+}, 1000);  // Run the function every 1 second
+</script>
+
 {% endblock %}

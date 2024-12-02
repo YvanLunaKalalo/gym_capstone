@@ -160,7 +160,9 @@ def workout_recommendation_view(request):
             
         # Calculate dynamic progress
         progress = calculate_progress(request.user)  # Dynamically calculate progress for the user
-    
+        
+        request.session['recommended_workouts'] = recommended_workouts.to_dict(orient='records')  # Store in session
+
         # Pass recommended workouts to the template
         context = {
             "recommended_workouts" : recommended_workouts[['Title', 'Desc', 'Type', 'BodyPart', 'Equipment', 'Level']].to_dict(orient='records'),
@@ -235,48 +237,22 @@ def update_progress_view(request, workout_title):
 
     return render(request, 'progress_tracker.html', context)
 
-def workout_session_view(request, workout_title):
-    # Get the workout by its title
-    workout = get_object_or_404(Workout, Title=workout_title)
-    user_profile = get_object_or_404(UserProfile, user=request.user)
+def workout_session_view(request):
+    workouts = request.session.get('recommended_workouts', [])  # Fetch workouts from session
+
+    # Get current workout index, or default to the first one (index 0)
+    index = int(request.GET.get('index', 0))
     
-    # Fetch or initialize the user's progress for this workout
-    progress_entry, created = UserProgress.objects.get_or_create(
-        user=request.user, workout=workout,
-        defaults={'progress': 0, 'start_time': timezone.now()}
-    )
+    if index >= len(workouts):  # All workouts are completed
+        return redirect('workout_dashboard')  # Redirect to the dashboard
 
-    if request.method == 'POST':
-        action = request.POST.get('action')  # Either 'start' or 'stop'
-        
-        if action == 'start':
-            # Start the stopwatch
-            progress_entry.start_time = timezone.now()
-            progress_entry.save()
-        
-        elif action == 'stop':
-            # Stop the stopwatch and calculate the time spent
-            if progress_entry.start_time:
-                elapsed_time = timezone.now() - progress_entry.start_time
-                progress_entry.progress = min((elapsed_time.total_seconds() // 60), 100)  # Convert to minutes
-                progress_entry.save()
-                
-                # Check if this was the last workout
-                all_workouts_completed = UserProgress.objects.filter(user=request.user, progress=100).count()
-                total_workouts = Workout.objects.count()
-
-                if all_workouts_completed == total_workouts:
-                    return redirect('workout_dashboard')
-
-    # Fetch the elapsed time if workout is being tracked
-    elapsed_time = None
-    if progress_entry.start_time:
-        elapsed_time = timezone.now() - progress_entry.start_time
-
+    # Get current workout
+    current_workout = workouts[index]
+    
     context = {
-        'workout': workout,
-        'progress': progress_entry.progress,
-        'elapsed_time': elapsed_time,
+        'workout': current_workout,
+        'index': index,
+        'total_workouts': len(workouts),
     }
     
     return render(request, 'workout_session.html', context)
@@ -297,4 +273,14 @@ def workout_dashboard_view(request):
 
     return render(request, 'workout_dashboard.html', context)
 
+def workout_dashboard_view(request):
+    # Fetch completed workouts for this user
+    completed_workouts = UserProgress.objects.filter(user=request.user)
+    
+    context = {
+        'completed_workouts': completed_workouts,
+        'progress': calculate_progress(request.user)  # Calculate progress for the user
+    }
+
+    return render(request, 'workout_dashboard.html', context)
 

@@ -1,19 +1,19 @@
 {% extends 'master.html' %}
-
 {% block title %}
 <title>Workout Dashboard</title>
 {% endblock %}
 
 {% block content %}
-<div class="container pt-5">
-  <h2 class="text-center">Your Workout Dashboard</h2>
+<div class="container mt-5">
+    <h1>Your Workout Progress</h1>
+    <p>Total Progress: {{ progress }}%</p>
 
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <p><strong>Total Workouts:</strong> {{ total_workouts }}</p>
-      <p><strong>Workouts Completed:</strong> {{ completed_workouts }}</p>
-      <p><strong>Total Time Spent:</strong> {{ total_time_spent }}</p>
-    </div>
-  </div>
+    <ul class="list-group mt-4">
+        {% for workout in completed_workouts %}
+        <li class="list-group-item">
+            <strong>{{ workout.workout.Title }}</strong> - {{ workout.progress }}% completed
+        </li>
+        {% endfor %}
+    </ul>
 </div>
 {% endblock %}
