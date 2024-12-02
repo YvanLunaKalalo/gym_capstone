@@ -136,11 +136,12 @@ def workout_recommendation_view(request):
         top_indices = similarity_scores[0].argsort()[-5:][::-1]
         recommended_workouts = workout_data.iloc[top_indices]
 
-        # Save recommended workouts to the UserProgress model
+        # Save recommended workouts to the UserProgress model for the specific user only
         for _, workout in recommended_workouts.iterrows():
-            # Get or create the workout instance
-            workout_instance, created = Workout.objects.get_or_create(
+            # Get or create the workout for the specific user context
+            workout_obj, created = Workout.objects.get_or_create(
                 Title=workout['Title'],
+                user=request.user,  # Associate workout with the user
                 defaults={
                     'Desc': workout['Desc'],
                     'Type': workout['Type'],
@@ -150,10 +151,10 @@ def workout_recommendation_view(request):
                 }
             )
 
-            # Now, save the UserProgress entry specific to the logged-in user
+            # Link workout with UserProgress, exclusive to this user
             UserProgress.objects.get_or_create(
-                user=request.user,  # Ensure the workout is tied to the logged-in user
-                workout=workout_instance,  # Tie the workout to the specific instance
+                user=request.user,
+                workout=workout_obj,
                 defaults={'progress': 0}  # Initialize progress
             )
             
