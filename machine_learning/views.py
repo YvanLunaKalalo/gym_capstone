@@ -161,6 +161,8 @@ def workout_recommendation_view(request):
         # Calculate dynamic progress
         progress = calculate_progress(request.user)  # Dynamically calculate progress for the user
         
+        request.session['recommended_workouts'] = recommended_workouts.to_dict(orient='records')  # Store in session
+
         # Pass recommended workouts to the template
         context = {
             "recommended_workouts" : recommended_workouts[['Title', 'Desc', 'Type', 'BodyPart', 'Equipment', 'Level']].to_dict(orient='records'),
@@ -234,12 +236,6 @@ def update_progress_view(request, workout_title):
     }
 
     return render(request, 'progress_tracker.html', context)
-
-import time
-from datetime import timedelta
-from django.shortcuts import render, redirect
-from django.utils import timezone
-from .models import UserProgress, Workout
 
 def workout_session_view(request, workout_title):
     # Get the workout by its title
