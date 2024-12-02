@@ -236,67 +236,6 @@ def update_progress_view(request, workout_title):
 
     return render(request, 'progress_tracker.html', context)
 
-def calculate_progress(user):
-    """
-    A helper function to dynamically calculate the user's progress
-    based on workout completion, fitness goal, and other factors.
-    """
-    # Get the user profile
-    user_profile = UserProfile.objects.get(user=user)
-
-    # Example calculation: Assume progress is based on the percentage of workouts completed
-    total_workouts = Workout.objects.count()  # Total available workouts
-    completed_workouts = UserProgress.objects.filter(user=user, progress=100).count()  # Workouts completed by user
-
-    if total_workouts == 0:
-        return 0
-
-    # Example: Calculate progress based on the ratio of completed workouts
-    progress = (completed_workouts / total_workouts) * 100
-
-    # You can also factor in fitness goals, difficulty levels, etc.
-    # For example, if the user’s goal is "Weight Loss" and they've completed
-    # certain cardio workouts, you could increase their progress more.
-    if user_profile.Fitness_Goal == "Weight Loss":
-        progress += 10  # Boost progress for specific goals (this is just an example)
-
-    # Ensure progress doesn't exceed 100%
-    return min(progress, 100)
-
-def update_progress_view(request, workout_title):
-    # Get the workout by its Title
-    workout = get_object_or_404(Workout, Title=workout_title)
-    
-    # Get the user profile
-    user_profile = get_object_or_404(UserProfile, user=request.user)
-
-    # Fetch or initialize the user's progress for this workout
-    progress_entry, created = UserProgress.objects.get_or_create(
-        user=request.user, workout=workout,
-        defaults={'progress': 0},  # Default progress when starting
-    )
-
-    if request.method == 'POST':
-        # Increment the user's progress
-        increment = int(request.POST.get('increment', 0))  # Get the increment value from the form
-        progress_entry.progress = min(progress_entry.progress + increment, 100)  # Ensure it doesn't exceed 100%
-        progress_entry.save()
-
-    # Logic to analyze and update progress based on UserProfile and Workout
-    # For instance, you could adjust progress based on user fitness level, workout difficulty, etc.
-    
-    progress_percentage = progress_entry.progress
-
-    # Pass the data to the template
-    context = {
-        'workout': workout,
-        'progress': progress_percentage,
-        'user_profile': user_profile,
-        'progress_date': progress_entry.progress_date,
-    }
-
-    return render(request, 'progress_tracker.html', context)
-
 def workout_session_view(request, workout_title):
     # Get the workout by its Title
     workout = get_object_or_404(Workout, Title=workout_title)
