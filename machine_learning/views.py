@@ -273,7 +273,7 @@ def calculate_progress(user):
     
     return total_duration, progress_message
 
-def update_progress(request):
+def update_progress_view(request):
     # Get the user's progress data
     total_duration, progress_message = calculate_progress(request.user)
 
