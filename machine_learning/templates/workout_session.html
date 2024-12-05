@@ -7,7 +7,6 @@
 {% endblock %}
 
 {% block content %}
-
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6 text-center">
@@ -20,14 +19,14 @@
             <!-- Workout Stopwatch -->
             <h3>Workout Stopwatch</h3>
             <div id="stopwatch">
-                <p id="timer">00:00</p>
+                <p id="timer">{{ elapsed_time|default:0|add:"0" }} min</p>
                 <button id="startStop" onclick="startStop()">Start</button>
                 <button id="reset" onclick="reset()">Reset</button>
             </div>
 
             <form method="GET" action="{% url 'workout_session' %}">
                 <input type="hidden" name="index" value="{{ index|add:1 }}">  <!-- Increment the workout index -->
-                <button type="submit" id="nextWorkoutButton" class="btn btn-lg btn-primary mt-3" style="display:none;">Next Workout</button>
+                <button type="submit" id="nextWorkoutButton" class="btn btn-lg btn-primary mt-3">Next Workout</button>
             </form>
         </div>
     </div>
@@ -37,8 +36,8 @@
 // Stopwatch Logic
 var stopwatchTimer;
 var isRunning = false;
-var seconds = 0;
-var minutes = 0;
+var seconds = {{ elapsed_time|default:0 }} * 60;  // Start the stopwatch from the saved session time
+var minutes = Math.floor(seconds / 60);
 
 function startStop() {
     if (isRunning) {

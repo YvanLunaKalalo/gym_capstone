@@ -7,8 +7,6 @@ from django.conf import settings
 from sklearn.metrics.pairwise import cosine_similarity
 from .models import Workout, UserProfile, UserProgress
 import time
-from datetime import timedelta
-from django.utils import timezone
 
 # Load the pre-trained model
 model1 = load('./Saved_Models/model1.joblib') # BMI
@@ -123,11 +121,15 @@ def workout_recommendation_view(request):
             'Fitness Type_Muscular Fitness' : [1 if Fitness_Type == 'Muscular Fitness' else 0],
         }
         
-        # Calculate sets, reps, and days per week based on the workout level
+        # Inside the workout_recommendation_view function, adjust the workout_plan based on Fitness_Goal
+    if Fitness_Goal == 'Weight Loss':
         workout_plan = workout_level_mapping.get(Level, {'sets': 3, 'reps': 10, 'days_per_week': 3})
-
-        # Store the recommended workout plan in the context
-        context['workout_plan'] = workout_plan
+        workout_plan['days_per_week'] = 5  # Typically higher frequency for weight loss (e.g., 5 days per week)
+    elif Fitness_Goal == 'Muscular Fitness':
+        workout_plan = workout_level_mapping.get(Level, {'sets': 4, 'reps': 12, 'days_per_week': 4})
+        workout_plan['days_per_week'] = 4  # Lower frequency for muscular fitness (e.g., 4 days per week)
+    else:
+        workout_plan = workout_level_mapping.get(Level, {'sets': 3, 'reps': 10, 'days_per_week': 3})
         
         # Convert profile data to DataFrame
         # profile_df = pd.DataFrame(data, columns=columns)
@@ -189,32 +191,66 @@ def workout_recommendation_view(request):
 
     return HttpResponse(template.render(context, request))
 
+import time
+from django.shortcuts import render, redirect
+
+def workout_session_view(request):
+    workouts = request.session.get('recommended_workouts', [])  # Fetch workouts from session
+    index = int(request.GET.get('index', 0))
+
+    if index >= len(workouts):  # All workouts are completed
+        return redirect('update_progress')  # Redirect to the dashboard
+
+    current_workout = workouts[index]
+
+    # Store the start time in the session if it's the first workout
+    if 'start_time' not in request.session:
+        request.session['start_time'] = time.time()
+
+    # Check time elapsed for current workout
+    elapsed_time = time.time() - request.session['start_time']
+
+    # Calculate workout duration in minutes
+    workout_duration = int(elapsed_time / 60)  # Convert seconds to minutes
+
+    # Update elapsed time on each page load
+    request.session['elapsed_time'] = workout_duration
+
+    context = {
+        'workout': current_workout,
+        'index': index,
+        'total_workouts': len(workouts),
+        'workout_duration': workout_duration,  # Pass the workout time to the template
+        'elapsed_time': request.session.get('elapsed_time', 0),
+    }
+    
+    return render(request, 'workout_session.html', context)
+
 def calculate_progress(user):
     """
     A helper function to dynamically calculate the user's progress
-    based on workout completion, fitness goal, and other factors.
+    based on workout completion, fitness goal, etc.
     """
     # Get the user profile
     user_profile = UserProfile.objects.get(user=user)
 
-    # Example calculation: Assume progress is based on the percentage of workouts completed
+    # Example: Calculate progress based on the percentage of workouts completed per week
     total_workouts = Workout.objects.count()  # Total available workouts
     completed_workouts = UserProgress.objects.filter(user=user, progress=100).count()  # Workouts completed by user
 
-    if total_workouts == 0:
-        return 0
+    # Progress based on workouts completed
+    workout_progress = (completed_workouts / total_workouts) * 100
 
-    # Example: Calculate progress based on the ratio of completed workouts
-    progress = (completed_workouts / total_workouts) * 100
+    # Combine workout progress with a boost based on fitness goals
+    progress = workout_progress
 
-    # You can also factor in fitness goals, difficulty levels, etc.
-    # For example, if the user’s goal is "Weight Loss" and they've completed
-    # certain cardio workouts, you could increase their progress more.
+    # Example: Boost progress based on specific fitness goals
     if user_profile.Fitness_Goal == "Weight Loss":
         progress += 10  # Boost progress for specific goals (this is just an example)
 
     # Ensure progress doesn't exceed 100%
     return min(progress, 100)
+
 
 def update_progress_view(request, workout_title):
     # Get the workout by its Title
@@ -235,9 +271,11 @@ def update_progress_view(request, workout_title):
         progress_entry.progress = min(progress_entry.progress + increment, 100)  # Ensure it doesn't exceed 100%
         progress_entry.save()
 
-    # Logic to analyze and update progress based on UserProfile and Workout
-    # For instance, you could adjust progress based on user fitness level, workout difficulty, etc.
-    
+    # Logic to calculate BMI based on user's weight and height
+    height_in_meters = user_profile.height / 100  # Convert cm to meters
+    bmi = user_profile.weight / (height_in_meters ** 2)  # Calculate BMI
+    bmi_category = categorize_bmi(bmi)  # Categorize BMI
+
     progress_percentage = progress_entry.progress
 
     # Pass the data to the template
@@ -246,43 +284,19 @@ def update_progress_view(request, workout_title):
         'progress': progress_percentage,
         'user_profile': user_profile,
         'progress_date': progress_entry.progress_date,
+        'bmi': bmi,
+        'bmi_category': bmi_category
     }
 
     return render(request, 'progress_tracker.html', context)
 
-def workout_session_view(request):
-    workouts = request.session.get('recommended_workouts', [])  # Fetch workouts from session
-
-    # Get current workout index, or default to the first one (index 0)
-    index = int(request.GET.get('index', 0))
-    
-    if index >= len(workouts):  # All workouts are completed
-        return redirect('workout_dashboard')  # Redirect to the dashboard
-
-    # Get current workout
-    current_workout = workouts[index]
-    
-    context = {
-        'workout': current_workout,
-        'index': index,
-        'total_workouts': len(workouts),
-    }
-    
-    return render(request, 'workout_session.html', context)
-
-def workout_dashboard_view(request):
-    # Get the user's progress and calculate the summary
-    user_progress = UserProgress.objects.filter(user=request.user)
-    
-    total_workouts = user_progress.count()
-    completed_workouts = user_progress.filter(progress=100).count()
-    total_time_spent = sum([progress_entry.progress for progress_entry in user_progress])
-
-    context = {
-        'total_workouts': total_workouts,
-        'completed_workouts': completed_workouts,
-        'total_time_spent': timedelta(seconds=total_time_spent * 60),  # Convert minutes to timedelta
-    }
-
-    return render(request, 'workout_dashboard.html', context)
-
+def categorize_bmi(bmi):
+    """Categorize the BMI value"""
+    if bmi < 18.5:
+        return 'Underweight'
+    elif 18.5 <= bmi < 24.9:
+        return 'Normal weight'
+    elif 25 <= bmi < 29.9:
+        return 'Overweight'
+    else:
+        return 'Obese'
