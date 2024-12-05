@@ -122,14 +122,14 @@ def workout_recommendation_view(request):
         }
         
         # Inside the workout_recommendation_view function, adjust the workout_plan based on Fitness_Goal
-    if Fitness_Goal == 'Weight Loss':
-        workout_plan = workout_level_mapping.get(Level, {'sets': 3, 'reps': 10, 'days_per_week': 3})
-        workout_plan['days_per_week'] = 5  # Typically higher frequency for weight loss (e.g., 5 days per week)
-    elif Fitness_Goal == 'Muscular Fitness':
-        workout_plan = workout_level_mapping.get(Level, {'sets': 4, 'reps': 12, 'days_per_week': 4})
-        workout_plan['days_per_week'] = 4  # Lower frequency for muscular fitness (e.g., 4 days per week)
-    else:
-        workout_plan = workout_level_mapping.get(Level, {'sets': 3, 'reps': 10, 'days_per_week': 3})
+        if Fitness_Goal == 'Weight Loss':
+            workout_plan = workout_level_mapping.get(Level, {'sets': 3, 'reps': 10, 'days_per_week': 3})
+            workout_plan['days_per_week'] = 5  # Typically higher frequency for weight loss (e.g., 5 days per week)
+        elif Fitness_Goal == 'Muscular Fitness':
+            workout_plan = workout_level_mapping.get(Level, {'sets': 4, 'reps': 12, 'days_per_week': 4})
+            workout_plan['days_per_week'] = 4  # Lower frequency for muscular fitness (e.g., 4 days per week)
+        else:
+            workout_plan = workout_level_mapping.get(Level, {'sets': 3, 'reps': 10, 'days_per_week': 3})
         
         # Convert profile data to DataFrame
         # profile_df = pd.DataFrame(data, columns=columns)
