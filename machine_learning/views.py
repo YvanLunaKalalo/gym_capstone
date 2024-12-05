@@ -7,7 +7,6 @@ from django.conf import settings
 from sklearn.metrics.pairwise import cosine_similarity
 from .models import Workout, UserProfile, UserProgress, CompletedWorkout
 import time
-from django.utils import timezone
 
 # Load the pre-trained model
 model1 = load('./Saved_Models/model1.joblib') # BMI
