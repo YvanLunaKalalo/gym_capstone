@@ -7,169 +7,30 @@
 {% endblock %}
 
 {% block content %}
-
-<style type="text/css">
-    /* Flex styling for centering video overlay */
-    .video-overlay {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-    }
-
-    /* Caption styling */
-    .caption {
-        text-align: center;
-        color: white;
-        font-size: 1.2rem;
-    }
-
-    /* Text styling for result section */
-    .result-text {
-        margin-top: 20px;
-        font-weight: bold;
-        color: white;
-        background-color: rgba(0, 0, 0, 0.6);
-        padding: 10px;
-        border-radius: 5px;
-        display: inline-block;
-    }
-
-    /* Progress container for background and padding */
-    .progress-container {
-        background-color: rgba(255, 255, 255, 0.05);
-        padding: 25px;
-        border-radius: 12px;
-    }
-
-    /* Custom progress bar color */
-    .progress-bar-custom {
-        background-color: #ed563b;
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
-    }
-
-    /* User profile list styling */
-    .user-profile ul {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-
-    .list-group-item {
-        font-size: 1rem;
-        padding: 12px 15px;
-        border: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    /* Button styling */
-    .btn-custom {
-        background-color: #ed563b;
-        border: none;
-        padding: 12px;
-        text-transform: uppercase;
-        font-weight: bold;
-        letter-spacing: 1px;
-        transition: background-color 0.3s ease;
-        color: white;
-        margin-bottom: 20px;
-    }
-
-    .btn-custom:hover {
-        background-color: white;
-        color: #ed563b;
-    }
-</style>
-
-<div class="main-banner pt-5" id="top">
-    <div class="container mt-5">
-
-        <a href="{% url 'recommend' %}" class="btn btn-custom">
-            Go Back
-        </a>
-
-        <div class="card bg-dark text-white shadow-lg p-4 mb-5 rounded-lg">
-            <div class="card-body">    
-
-                <!-- Progress Update Section -->
-                <div class="progress-container mt-5">
-                    <h4 class="text-uppercase font-weight-bold">Progress Update</h4>
-                    <div class="mt-3">
-                        <p>Total Duration: {{ total_duration }} minutes</p>
-                        <p>Total Workouts Completed: {{ completed_count }}</p>
-
-                        {% if bmi_progress is not None %}
-                            <p>Your initial BMI: {{ initial_bmi }}</p>
-                            <p>Your updated BMI: {{ updated_bmi }}</p>
-                            <p>Progress in BMI: {{ bmi_progress }} (positive is improvement)</p>
-                        {% else %}
-                            <p>Unable to calculate BMI progress.</p>
-                        {% endif %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10 col-sm-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title text-center">Progress Tracker</h2>
+                    
+                    <div class="progress mt-4">
+                        <div class="progress-bar" role="progressbar" style="width: {{ total_duration }}%" aria-valuenow="{{ total_duration }}" aria-valuemin="0" aria-valuemax="100">
+                            Total Workout Duration: {{ total_duration }} minutes
+                        </div>
                     </div>
-                </div>
 
-                <!-- Completed Workouts -->
-                <div class="mt-5">
-                    <h4 class="text-uppercase font-weight-bold">Completed Workouts</h4>
-                    <ul class="list-group mt-3">
-                        {% for completed_workout in completed_workouts %}
-                            <li class="list-group-item bg-transparent text-white">
-                                {{ completed_workout.workout.Title }} - Progress: {{ completed_workout.progress }}%
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-
-                <!-- Total Time Spent -->
-                <div class="mt-4">
-                    <h4 class="text-uppercase font-weight-bold">Total Time Spent</h4>
-                    <p class="text-white">{{ total_time_spent }} (hh:mm:ss)</p>
-                </div>
-
-                <!-- Predicted BMI -->
-                {% if predicted_bmi %}
                     <div class="mt-4">
-                        <h4 class="text-uppercase font-weight-bold">Predicted BMI</h4>
-                        <p class="text-white">Your predicted BMI is: {{ predicted_bmi }}</p>
+                        <h4>Progress Summary:</h4>
+                        <p>{{ progress_message }}</p>
                     </div>
-                {% endif %}
 
-                <!-- User profile details -->
-                <div class="user-profile mt-5">
-                    <h4 class="text-uppercase font-weight-bold">User Profile Details</h4>
-                    <ul class="list-group list-group-flush mt-3">
-                        <li class="list-group-item bg-transparent text-white"><strong>Age:</strong> {{ user_profile.Age }}</li>
-                        <li class="list-group-item bg-transparent text-white"><strong>Gender:</strong> {{ user_profile.Sex }}</li>
-                        <li class="list-group-item bg-transparent text-white"><strong>Progress:</strong> {{ progress }}%</li>
-                        <li class="list-group-item bg-transparent text-white"><strong>Date of Progress Update:</strong> {{ progress_date }}</li>
-                    </ul>
+                    <div class="text-center mt-4">
+                        <a href="{% url 'home' %}" class="btn btn-primary">Go to Dashboard</a>
+                    </div>
                 </div>
-
-                <!-- User BMI Details -->
-                <div class="user-profile mt-5">
-                    <h4 class="text-uppercase font-weight-bold">User BMI Details</h4>
-                    <ul class="list-group list-group-flush mt-3">
-                        <li class="list-group-item bg-transparent text-white"><strong>BMI:</strong> {{ bmi|floatformat:1 }}</li>
-                        <li class="list-group-item bg-transparent text-white"><strong>BMI Category:</strong> {{ bmi_category }}</li>
-                    </ul>
-                </div>
-
-                <!-- Buttons -->
-                <div class="mt-4 text-center">
-                    <a href="{% url 'recommend' %}" class="btn btn-custom text-light w-100">
-                        Back to Form
-                    </a>
-                </div>
-
-                <div class="mt-4 text-center">
-                    <a href="{% url 'index' %}" class="btn btn-custom text-light w-100">
-                        Back to Home
-                    </a>
-                </div>
-
             </div>
         </div>
     </div>
 </div>
-
 {% endblock %}

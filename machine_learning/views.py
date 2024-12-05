@@ -7,6 +7,7 @@ from django.conf import settings
 from sklearn.metrics.pairwise import cosine_similarity
 from .models import Workout, UserProfile, UserProgress, CompletedWorkout
 import time
+from django.utils import timezone
 
 # Load the pre-trained model
 model1 = load('./Saved_Models/model1.joblib') # BMI
@@ -198,7 +199,7 @@ def workout_session_view(request):
     index = int(request.GET.get('index', 0))
 
     if index >= len(workouts):  # All workouts are completed
-        return redirect('update_progress')  # Redirect to the dashboard
+        return redirect('update_progress')  # Redirect to the progress page
 
     current_workout = workouts[index]
 
@@ -247,59 +248,39 @@ def workout_session_view(request):
 
     return render(request, 'workout_session.html', context)
 
+# Function to calculate the user's progress based on completed workouts
 def calculate_progress(user):
-    """
-    A helper function to dynamically calculate the user's progress
-    based on workout completion, fitness goal, etc.
-    """
-    # Get the user profile
-    user_profile = UserProfile.objects.get(user=user)
-
-    # Example: Calculate progress based on the percentage of workouts completed per week
-    total_workouts = Workout.objects.count()  # Total available workouts
-    completed_workouts = UserProgress.objects.filter(user=user, progress=100).count()  # Workouts completed by user
-
-    # Progress based on workouts completed
-    workout_progress = (completed_workouts / total_workouts) * 100
-
-    # Combine workout progress with a boost based on fitness goals
-    progress = workout_progress
-
-    # Example: Boost progress based on specific fitness goals
-    if user_profile.Fitness_Goal == "Weight Loss":
-        progress += 10  # Boost progress for specific goals (this is just an example)
-
-    # Ensure progress doesn't exceed 100%
-    return min(progress, 100)
-
-def update_progress_view(request):
-    # Get completed workouts for the current user
-    completed_workouts = CompletedWorkout.objects.filter(user=request.user)
-
-    # Calculate the total workout duration and progress
+    # Fetch completed workouts
+    completed_workouts = CompletedWorkout.objects.filter(user=user)
+    
+    # Calculate total workout duration
     total_duration = sum([workout.duration for workout in completed_workouts])
-    completed_count = completed_workouts.count()
 
-    # Get the user's profile
-    user_profile = UserProfile.objects.get(user=request.user)
-    initial_bmi = user_profile.BMI  # Initial BMI when the user first filled the profile
-
-    # Calculate updated BMI (e.g., after a certain period of time)
-    updated_bmi = calculate_bmi(request)  # Assume you have a function to calculate BMI based on new input
+    # Fetch the user's profile to calculate BMI progress
+    profile = UserProfile.objects.get(user=user)
+    initial_bmi = profile.BMI  # The BMI at the time of profile creation
+    updated_bmi = profile.BMI  # The BMI after completing the workouts
 
     # Compare the initial and updated BMI
-    bmi_progress = None
-    if updated_bmi is not None and initial_bmi is not None:
-        bmi_progress = updated_bmi - initial_bmi
-        bmi_progress = round(bmi_progress, 2)
+    if initial_bmi and updated_bmi:
+        progress_message = "Your progress has been tracked!"
+        if updated_bmi < initial_bmi:
+            progress_message += " You've reduced your BMI, great job!"
+        else:
+            progress_message += " Keep working on improving your fitness!"
+    else:
+        progress_message = "Your BMI progress could not be tracked."
+    
+    return total_duration, progress_message
 
-    # Pass the progress data to the template
+def update_progress(request):
+    # Get the user's progress data
+    total_duration, progress_message = calculate_progress(request.user)
+
+    # Render the progress page template
     context = {
-        'completed_workouts': completed_workouts,
-        'total_duration': total_duration,
-        'completed_count': completed_count,
-        'bmi_progress': bmi_progress,
-        'updated_bmi': updated_bmi,
+        'total_duration': total_duration,  # Total workout duration in minutes
+        'progress_message': progress_message,  # Message about progress
     }
 
     return render(request, 'progress_tracker.html', context)

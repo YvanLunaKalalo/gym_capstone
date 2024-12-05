@@ -9,73 +9,37 @@
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-6 text-center">
-            <h1 class="mb-4">Workout: {{ workout.Title }}</h1>
-            <p class="lead">{{ workout.Desc }}</p>
+        <div class="col-md-8">
+            <h2 class="text-center">Workout Session: {{ workout.Title }}</h2>
 
-            <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
-            <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
-
-            <!-- Workout Stopwatch -->
-            <h3>Workout Stopwatch</h3>
-            <div id="stopwatch">
-                <p id="timer">{{ elapsed_time|default:0|add:"0" }} min</p>
-                <button id="startStop" onclick="startStop()">Start</button>
-                <button id="reset" onclick="reset()">Reset</button>
+            <div class="card">
+                <div class="card-body">
+                    <h4>Description:</h4>
+                    <p>{{ workout.Desc }}</p>
+                    <p><strong>Type:</strong> {{ workout.Type }}</p>
+                    <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
+                    <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
+                    <p><strong>Level:</strong> {{ workout.Level }}</p>
+                </div>
             </div>
 
-            <form method="GET" action="{% url 'workout_session' %}">
-                <input type="hidden" name="index" value="{{ index|add:1 }}">  <!-- Increment the workout index -->
-                <button type="submit" id="nextWorkoutButton" class="btn btn-lg btn-primary mt-3">Next Workout</button>
-            </form>
+            <div class="mt-4">
+                <h5>Workout Duration: {{ workout_duration }} minutes</h5>
+                <h5>Elapsed Time: {{ elapsed_time }} minutes</h5>
+            </div>
+
+            <div class="mt-4">
+                <a href="?complete=true&index={{ index }}" class="btn btn-success">Complete Workout</a>
+            </div>
+
+            <div class="mt-4">
+                {% if index + 1 < total_workouts %}
+                    <a href="/workout_session/?index={{ index + 1 }}" class="btn btn-primary">Next Workout</a>
+                {% else %}
+                    <a href="{% url 'update_progress' %}" class="btn btn-primary">Finish & Track Progress</a>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
-
-<script>
-// Stopwatch Logic
-var stopwatchTimer;
-var isRunning = false;
-var seconds = {{ elapsed_time|default:0 }} * 60;  // Start the stopwatch from the saved session time
-var minutes = Math.floor(seconds / 60);
-
-function startStop() {
-    if (isRunning) {
-        clearInterval(stopwatchTimer);
-        document.getElementById('startStop').textContent = 'Start';
-    } else {
-        stopwatchTimer = setInterval(updateStopwatch, 1000);
-        document.getElementById('startStop').textContent = 'Stop';
-    }
-    isRunning = !isRunning;
-}
-
-function updateStopwatch() {
-    seconds++;
-    if (seconds === 60) {
-        seconds = 0;
-        minutes++;
-    }
-
-    document.getElementById('timer').textContent = formatTime(minutes, seconds);
-}
-
-function reset() {
-    clearInterval(stopwatchTimer);
-    isRunning = false;
-    seconds = 0;
-    minutes = 0;
-    document.getElementById('timer').textContent = '00:00';
-    document.getElementById('startStop').textContent = 'Start';
-}
-
-function formatTime(minutes, seconds) {
-    return `${pad(minutes)}:${pad(seconds)}`;
-}
-
-function pad(value) {
-    return value < 10 ? '0' + value : value;
-}
-</script>
-
 {% endblock %}
