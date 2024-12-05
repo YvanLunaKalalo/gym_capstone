@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block title %}
-<title>Workout Session</title>
+<title>Flex Appeal || Workout Session</title>
 {% endblock %}
 
 {% block content %}
@@ -14,10 +14,16 @@
             <h1 class="mb-4">Workout: {{ workout.Title }}</h1>
             <p class="lead">{{ workout.Desc }}</p>
 
-            <h3>Time Left: <span id="timer">60</span> seconds</h3> <!-- Timer starts at 60 seconds -->
-
             <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
             <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
+
+            <!-- Workout Stopwatch -->
+            <h3>Workout Stopwatch</h3>
+            <div id="stopwatch">
+                <p id="timer">00:00</p>
+                <button id="startStop" onclick="startStop()">Start</button>
+                <button id="reset" onclick="reset()">Reset</button>
+            </div>
 
             <form method="GET" action="{% url 'workout_session' %}">
                 <input type="hidden" name="index" value="{{ index|add:1 }}">  <!-- Increment the workout index -->
@@ -28,20 +34,49 @@
 </div>
 
 <script>
-// Timer logic
-var timeLeft = 60;  // Initial countdown time in seconds
-var timerElement = document.getElementById('timer');
-var nextWorkoutButton = document.getElementById('nextWorkoutButton');
+// Stopwatch Logic
+var stopwatchTimer;
+var isRunning = false;
+var seconds = 0;
+var minutes = 0;
 
-var timer = setInterval(function() {
-    timeLeft--;
-    timerElement.textContent = timeLeft;
-
-    if (timeLeft <= 0) {
-        clearInterval(timer);  // Stop the timer
-        nextWorkoutButton.style.display = 'block';  // Show the "Next Workout" button
+function startStop() {
+    if (isRunning) {
+        clearInterval(stopwatchTimer);
+        document.getElementById('startStop').textContent = 'Start';
+    } else {
+        stopwatchTimer = setInterval(updateStopwatch, 1000);
+        document.getElementById('startStop').textContent = 'Stop';
     }
-}, 1000);  // Run the function every 1 second
+    isRunning = !isRunning;
+}
+
+function updateStopwatch() {
+    seconds++;
+    if (seconds === 60) {
+        seconds = 0;
+        minutes++;
+    }
+
+    document.getElementById('timer').textContent = formatTime(minutes, seconds);
+}
+
+function reset() {
+    clearInterval(stopwatchTimer);
+    isRunning = false;
+    seconds = 0;
+    minutes = 0;
+    document.getElementById('timer').textContent = '00:00';
+    document.getElementById('startStop').textContent = 'Start';
+}
+
+function formatTime(minutes, seconds) {
+    return `${pad(minutes)}:${pad(seconds)}`;
+}
+
+function pad(value) {
+    return value < 10 ? '0' + value : value;
+}
 </script>
 
 {% endblock %}

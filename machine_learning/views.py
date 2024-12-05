@@ -24,6 +24,13 @@ workout_data['combined_features'] = workout_data['combined_features'].fillna('')
 # Transform workout features using the vectorizer
 workout_features_matrix = vectorizer.transform(workout_data['combined_features'])
 
+# Add a mapping for sets, reps, and days based on workout level
+workout_level_mapping = {
+    'Beginner': {'sets': 3, 'reps': 10, 'days_per_week': 3},
+    'Intermediate': {'sets': 4, 'reps': 12, 'days_per_week': 4},
+    'Advanced': {'sets': 5, 'reps': 15, 'days_per_week': 5},
+}
+
 def bmi_view(request):
     template = loader.get_template('bmi.html')
     context = {}
@@ -115,7 +122,13 @@ def workout_recommendation_view(request):
             'Fitness Type_Cardio Fitness' : [1 if Fitness_Type == 'Cardio Fitness' else 0],
             'Fitness Type_Muscular Fitness' : [1 if Fitness_Type == 'Muscular Fitness' else 0],
         }
+        
+        # Calculate sets, reps, and days per week based on the workout level
+        workout_plan = workout_level_mapping.get(Level, {'sets': 3, 'reps': 10, 'days_per_week': 3})
 
+        # Store the recommended workout plan in the context
+        context['workout_plan'] = workout_plan
+        
         # Convert profile data to DataFrame
         # profile_df = pd.DataFrame(data, columns=columns)
         
@@ -167,7 +180,7 @@ def workout_recommendation_view(request):
         context = {
             "recommended_workouts" : recommended_workouts[['Title', 'Desc', 'Type', 'BodyPart', 'Equipment', 'Level']].to_dict(orient='records'),
             "progress": progress,  # Pass progress to the template
-
+            "workout_plan": workout_plan,  # Include workout plan details in the context
         }
         
         # print(context["recommended_workouts"])
@@ -269,17 +282,6 @@ def workout_dashboard_view(request):
         'total_workouts': total_workouts,
         'completed_workouts': completed_workouts,
         'total_time_spent': timedelta(seconds=total_time_spent * 60),  # Convert minutes to timedelta
-    }
-
-    return render(request, 'workout_dashboard.html', context)
-
-def workout_dashboard_view(request):
-    # Fetch completed workouts for this user
-    completed_workouts = UserProgress.objects.filter(user=request.user)
-    
-    context = {
-        'completed_workouts': completed_workouts,
-        'progress': calculate_progress(request.user)  # Calculate progress for the user
     }
 
     return render(request, 'workout_dashboard.html', context)
