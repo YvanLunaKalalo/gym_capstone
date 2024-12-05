@@ -5,7 +5,7 @@ from joblib import load
 import pandas as pd
 from django.conf import settings
 from sklearn.metrics.pairwise import cosine_similarity
-from .models import Workout, UserProfile, UserProgress
+from .models import Workout, UserProfile, UserProgress, CompletedWorkout
 import time
 
 # Load the pre-trained model
@@ -130,6 +130,8 @@ def workout_recommendation_view(request):
             workout_plan['days_per_week'] = 4  # Lower frequency for muscular fitness (e.g., 4 days per week)
         else:
             workout_plan = workout_level_mapping.get(Level, {'sets': 3, 'reps': 10, 'days_per_week': 3})
+            
+        context['workout_plan'] = workout_plan
         
         # Convert profile data to DataFrame
         # profile_df = pd.DataFrame(data, columns=columns)
@@ -191,9 +193,6 @@ def workout_recommendation_view(request):
 
     return HttpResponse(template.render(context, request))
 
-import time
-from django.shortcuts import render, redirect
-
 def workout_session_view(request):
     workouts = request.session.get('recommended_workouts', [])  # Fetch workouts from session
     index = int(request.GET.get('index', 0))
@@ -216,6 +215,28 @@ def workout_session_view(request):
     # Update elapsed time on each page load
     request.session['elapsed_time'] = workout_duration
 
+    # On workout completion, save progress
+    if request.GET.get('complete') == 'true':
+        # Assuming progress is marked 100% on completion
+        progress = 100
+
+        # Create or update CompletedWorkout entry
+        CompletedWorkout.objects.create(
+            user=request.user,
+            workout=current_workout,
+            duration=workout_duration,
+            progress=progress,
+        )
+
+        # Reset the session start time after the workout is completed
+        request.session.pop('start_time', None)
+
+        # Redirect to next workout or finish
+        if index + 1 < len(workouts):
+            return redirect(f'/workout_session/?index={index + 1}')
+        else:
+            return redirect('update_progress')  # Redirect to progress page
+
     context = {
         'workout': current_workout,
         'index': index,
@@ -223,7 +244,7 @@ def workout_session_view(request):
         'workout_duration': workout_duration,  # Pass the workout time to the template
         'elapsed_time': request.session.get('elapsed_time', 0),
     }
-    
+
     return render(request, 'workout_session.html', context)
 
 def calculate_progress(user):
@@ -251,52 +272,48 @@ def calculate_progress(user):
     # Ensure progress doesn't exceed 100%
     return min(progress, 100)
 
+def update_progress_view(request):
+    # Get completed workouts for the current user
+    completed_workouts = CompletedWorkout.objects.filter(user=request.user)
 
-def update_progress_view(request, workout_title):
-    # Get the workout by its Title
-    workout = get_object_or_404(Workout, Title=workout_title)
-    
-    # Get the user profile
-    user_profile = get_object_or_404(UserProfile, user=request.user)
+    # Calculate the total workout duration and progress
+    total_duration = sum([workout.duration for workout in completed_workouts])
+    completed_count = completed_workouts.count()
 
-    # Fetch or initialize the user's progress for this workout
-    progress_entry, created = UserProgress.objects.get_or_create(
-        user=request.user, workout=workout,
-        defaults={'progress': 0},  # Default progress when starting
-    )
+    # Get the user's profile
+    user_profile = UserProfile.objects.get(user=request.user)
+    initial_bmi = user_profile.BMI  # Initial BMI when the user first filled the profile
 
-    if request.method == 'POST':
-        # Increment the user's progress
-        increment = int(request.POST.get('increment', 0))  # Get the increment value from the form
-        progress_entry.progress = min(progress_entry.progress + increment, 100)  # Ensure it doesn't exceed 100%
-        progress_entry.save()
+    # Calculate updated BMI (e.g., after a certain period of time)
+    updated_bmi = calculate_bmi(request)  # Assume you have a function to calculate BMI based on new input
 
-    # Logic to calculate BMI based on user's weight and height
-    height_in_meters = user_profile.height / 100  # Convert cm to meters
-    bmi = user_profile.weight / (height_in_meters ** 2)  # Calculate BMI
-    bmi_category = categorize_bmi(bmi)  # Categorize BMI
+    # Compare the initial and updated BMI
+    bmi_progress = None
+    if updated_bmi is not None and initial_bmi is not None:
+        bmi_progress = updated_bmi - initial_bmi
+        bmi_progress = round(bmi_progress, 2)
 
-    progress_percentage = progress_entry.progress
-
-    # Pass the data to the template
+    # Pass the progress data to the template
     context = {
-        'workout': workout,
-        'progress': progress_percentage,
-        'user_profile': user_profile,
-        'progress_date': progress_entry.progress_date,
-        'bmi': bmi,
-        'bmi_category': bmi_category
+        'completed_workouts': completed_workouts,
+        'total_duration': total_duration,
+        'completed_count': completed_count,
+        'bmi_progress': bmi_progress,
+        'updated_bmi': updated_bmi,
     }
 
     return render(request, 'progress_tracker.html', context)
 
-def categorize_bmi(bmi):
-    """Categorize the BMI value"""
-    if bmi < 18.5:
-        return 'Underweight'
-    elif 18.5 <= bmi < 24.9:
-        return 'Normal weight'
-    elif 25 <= bmi < 29.9:
-        return 'Overweight'
-    else:
-        return 'Obese'
+def calculate_bmi(request):
+    """Calculate updated BMI based on user input."""
+    weight = request.POST.get('Weight')
+    height = request.POST.get('Height')
+
+    if weight and height:
+        try:
+            height_in_meters = float(height) / 100  # Convert cm to meters
+            bmi = float(weight) / (height_in_meters ** 2)
+            return round(bmi, 2)
+        except (ValueError, ZeroDivisionError):
+            return None
+    return None

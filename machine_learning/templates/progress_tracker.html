@@ -1,80 +1,175 @@
 {% extends 'master.html' %}
+
 {% load static %}
 
 {% block title %}
-<title>Flex Appeal || Workout Session</title>
+<title>Flex Appeal || Progress Tracker</title>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 text-center">
-            <h1 class="mb-4">Workout: {{ workout.Title }}</h1>
-            <p class="lead">{{ workout.Desc }}</p>
 
-            <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
-            <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
+<style type="text/css">
+    /* Flex styling for centering video overlay */
+    .video-overlay {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
 
-            <!-- Workout Stopwatch -->
-            <h3>Workout Stopwatch</h3>
-            <div id="stopwatch">
-                <p id="timer">{{ elapsed_time|default:0|add:"0" }} min</p>
-                <button id="startStop" onclick="startStop()">Start</button>
-                <button id="reset" onclick="reset()">Reset</button>
+    /* Caption styling */
+    .caption {
+        text-align: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    /* Text styling for result section */
+    .result-text {
+        margin-top: 20px;
+        font-weight: bold;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.6);
+        padding: 10px;
+        border-radius: 5px;
+        display: inline-block;
+    }
+
+    /* Progress container for background and padding */
+    .progress-container {
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 25px;
+        border-radius: 12px;
+    }
+
+    /* Custom progress bar color */
+    .progress-bar-custom {
+        background-color: #ed563b;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    /* User profile list styling */
+    .user-profile ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .list-group-item {
+        font-size: 1rem;
+        padding: 12px 15px;
+        border: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Button styling */
+    .btn-custom {
+        background-color: #ed563b;
+        border: none;
+        padding: 12px;
+        text-transform: uppercase;
+        font-weight: bold;
+        letter-spacing: 1px;
+        transition: background-color 0.3s ease;
+        color: white;
+        margin-bottom: 20px;
+    }
+
+    .btn-custom:hover {
+        background-color: white;
+        color: #ed563b;
+    }
+</style>
+
+<div class="main-banner pt-5" id="top">
+    <div class="container mt-5">
+
+        <a href="{% url 'recommend' %}" class="btn btn-custom">
+            Go Back
+        </a>
+
+        <div class="card bg-dark text-white shadow-lg p-4 mb-5 rounded-lg">
+            <div class="card-body">    
+
+                <!-- Progress Update Section -->
+                <div class="progress-container mt-5">
+                    <h4 class="text-uppercase font-weight-bold">Progress Update</h4>
+                    <div class="mt-3">
+                        <p>Total Duration: {{ total_duration }} minutes</p>
+                        <p>Total Workouts Completed: {{ completed_count }}</p>
+
+                        {% if bmi_progress is not None %}
+                            <p>Your initial BMI: {{ initial_bmi }}</p>
+                            <p>Your updated BMI: {{ updated_bmi }}</p>
+                            <p>Progress in BMI: {{ bmi_progress }} (positive is improvement)</p>
+                        {% else %}
+                            <p>Unable to calculate BMI progress.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Completed Workouts -->
+                <div class="mt-5">
+                    <h4 class="text-uppercase font-weight-bold">Completed Workouts</h4>
+                    <ul class="list-group mt-3">
+                        {% for completed_workout in completed_workouts %}
+                            <li class="list-group-item bg-transparent text-white">
+                                {{ completed_workout.workout.Title }} - Progress: {{ completed_workout.progress }}%
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Total Time Spent -->
+                <div class="mt-4">
+                    <h4 class="text-uppercase font-weight-bold">Total Time Spent</h4>
+                    <p class="text-white">{{ total_time_spent }} (hh:mm:ss)</p>
+                </div>
+
+                <!-- Predicted BMI -->
+                {% if predicted_bmi %}
+                    <div class="mt-4">
+                        <h4 class="text-uppercase font-weight-bold">Predicted BMI</h4>
+                        <p class="text-white">Your predicted BMI is: {{ predicted_bmi }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- User profile details -->
+                <div class="user-profile mt-5">
+                    <h4 class="text-uppercase font-weight-bold">User Profile Details</h4>
+                    <ul class="list-group list-group-flush mt-3">
+                        <li class="list-group-item bg-transparent text-white"><strong>Age:</strong> {{ user_profile.Age }}</li>
+                        <li class="list-group-item bg-transparent text-white"><strong>Gender:</strong> {{ user_profile.Sex }}</li>
+                        <li class="list-group-item bg-transparent text-white"><strong>Progress:</strong> {{ progress }}%</li>
+                        <li class="list-group-item bg-transparent text-white"><strong>Date of Progress Update:</strong> {{ progress_date }}</li>
+                    </ul>
+                </div>
+
+                <!-- User BMI Details -->
+                <div class="user-profile mt-5">
+                    <h4 class="text-uppercase font-weight-bold">User BMI Details</h4>
+                    <ul class="list-group list-group-flush mt-3">
+                        <li class="list-group-item bg-transparent text-white"><strong>BMI:</strong> {{ bmi|floatformat:1 }}</li>
+                        <li class="list-group-item bg-transparent text-white"><strong>BMI Category:</strong> {{ bmi_category }}</li>
+                    </ul>
+                </div>
+
+                <!-- Buttons -->
+                <div class="mt-4 text-center">
+                    <a href="{% url 'recommend' %}" class="btn btn-custom text-light w-100">
+                        Back to Form
+                    </a>
+                </div>
+
+                <div class="mt-4 text-center">
+                    <a href="{% url 'index' %}" class="btn btn-custom text-light w-100">
+                        Back to Home
+                    </a>
+                </div>
+
             </div>
-
-            <form method="GET" action="{% url 'workout_session' %}">
-                <input type="hidden" name="index" value="{{ index|add:1 }}">  <!-- Increment the workout index -->
-                <button type="submit" id="nextWorkoutButton" class="btn btn-lg btn-primary mt-3">Next Workout</button>
-            </form>
         </div>
     </div>
 </div>
-
-<script>
-// Stopwatch Logic
-var stopwatchTimer;
-var isRunning = false;
-var seconds = {{ elapsed_time|default:0 }} * 60;  // Start the stopwatch from the saved session time
-var minutes = Math.floor(seconds / 60);
-
-function startStop() {
-    if (isRunning) {
-        clearInterval(stopwatchTimer);
-        document.getElementById('startStop').textContent = 'Start';
-    } else {
-        stopwatchTimer = setInterval(updateStopwatch, 1000);
-        document.getElementById('startStop').textContent = 'Stop';
-    }
-    isRunning = !isRunning;
-}
-
-function updateStopwatch() {
-    seconds++;
-    if (seconds === 60) {
-        seconds = 0;
-        minutes++;
-    }
-
-    document.getElementById('timer').textContent = formatTime(minutes, seconds);
-}
-
-function reset() {
-    clearInterval(stopwatchTimer);
-    isRunning = false;
-    seconds = 0;
-    minutes = 0;
-    document.getElementById('timer').textContent = '00:00';
-    document.getElementById('startStop').textContent = 'Start';
-}
-
-function formatTime(minutes, seconds) {
-    return `${pad(minutes)}:${pad(seconds)}`;
-}
-
-function pad(value) {
-    return value < 10 ? '0' + value : value;
-}
-</script>
 
 {% endblock %}
