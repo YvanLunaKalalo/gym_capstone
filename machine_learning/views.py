@@ -193,56 +193,45 @@ def workout_recommendation_view(request):
 
     return HttpResponse(template.render(context, request))
 
+# View to track workout session
 def workout_session_view(request):
     workouts = request.session.get('recommended_workouts', [])  # Fetch workouts from session
     index = int(request.GET.get('index', 0))
 
-    if index >= len(workouts):  # All workouts are completed
-        return redirect('update_progress')  # Redirect to the progress page
+    if index >= len(workouts):  # All workouts completed
+        return redirect('update_progress')  # Redirect to progress page
 
     current_workout = workouts[index]
 
-    # Store the start time in the session if it's the first workout
+    # Store start time in session if first workout
     if 'start_time' not in request.session:
         request.session['start_time'] = time.time()
 
-    # Check time elapsed for current workout
+    # Calculate elapsed time for the current workout
     elapsed_time = time.time() - request.session['start_time']
+    workout_duration = int(elapsed_time / 60)  # Convert to minutes
 
-    # Calculate workout duration in minutes
-    workout_duration = int(elapsed_time / 60)  # Convert seconds to minutes
-
-    # Update elapsed time on each page load
+    # Update workout session duration
     request.session['elapsed_time'] = workout_duration
 
-    # On workout completion, save progress
+    # Save completed workout to the CompletedWorkout model
     if request.GET.get('complete') == 'true':
-        # Assuming progress is marked 100% on completion
-        progress = 100
-
-        # Create or update CompletedWorkout entry
+        # Store workout completion in database
         CompletedWorkout.objects.create(
             user=request.user,
-            workout=current_workout,
+            workout=Workout.objects.get(Title=current_workout['Title']),
             duration=workout_duration,
-            progress=progress,
+            progress=100,  # Assuming completed workout is marked at 100%
         )
-
-        # Reset the session start time after the workout is completed
-        request.session.pop('start_time', None)
-
-        # Redirect to next workout or finish
-        if index + 1 < len(workouts):
-            return redirect(f'/workout_session/?index={index + 1}')
-        else:
-            return redirect('update_progress')  # Redirect to progress page
+        # Reset session start time for the next workout
+        del request.session['start_time']
+        return redirect(f'?index={index + 1}')  # Go to the next workout
 
     context = {
-        'workout': current_workout,
+        'current_workout': current_workout,
+        'workout_duration': workout_duration,
         'index': index,
         'total_workouts': len(workouts),
-        'workout_duration': workout_duration,  # Pass the workout time to the template
-        'elapsed_time': request.session.get('elapsed_time', 0),
     }
 
     return render(request, 'workout_session.html', context)
