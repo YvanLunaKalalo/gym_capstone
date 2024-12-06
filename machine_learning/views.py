@@ -7,6 +7,7 @@ from django.conf import settings
 from sklearn.metrics.pairwise import cosine_similarity
 from .models import Workout, UserProfile, UserProgress, CompletedWorkout
 import time
+from django.utils import timezone
 
 # Load the pre-trained model
 model1 = load('./Saved_Models/model1.joblib') # BMI
@@ -194,38 +195,55 @@ def workout_recommendation_view(request):
     return HttpResponse(template.render(context, request))
 
 # View to track workout session
+from django.utils import timezone
+
 def workout_session_view(request):
     workouts = request.session.get('recommended_workouts', [])  # Fetch workouts from session
     index = int(request.GET.get('index', 0))
 
-    if index >= len(workouts):  # All workouts completed
-        return redirect('update_progress')  # Redirect to progress page
+    if index >= len(workouts):  # All workouts are completed
+        return redirect('update_progress')  # Redirect to the progress page
 
     current_workout = workouts[index]
 
-    # Store start time in session if first workout
+    # Store the start time in the session if it's the first workout
     if 'start_time' not in request.session:
         request.session['start_time'] = time.time()
 
-    # Calculate elapsed time for the current workout
+    # Check time elapsed for current workout
     elapsed_time = time.time() - request.session['start_time']
-    workout_duration = int(elapsed_time / 60)  # Convert to minutes
 
-    # Update workout session duration
+    # Calculate workout duration in minutes
+    workout_duration = int(elapsed_time / 60)  # Convert seconds to minutes
+
+    # Update elapsed time on each page load
     request.session['elapsed_time'] = workout_duration
 
-    # Save completed workout to the CompletedWorkout model
+    # On workout completion, save progress
     if request.GET.get('complete') == 'true':
-        # Store workout completion in database
+        # Assuming progress is marked 100% on completion
+        workout_obj = get_object_or_404(Workout, Title=current_workout['Title'])
+
+        # Save completed workout data to CompletedWorkout model
         CompletedWorkout.objects.create(
             user=request.user,
-            workout=Workout.objects.get(Title=current_workout['Title']),
+            workout=workout_obj,
+            start_time=timezone.now(),
+            end_time=timezone.now(),
             duration=workout_duration,
-            progress=100,  # Assuming completed workout is marked at 100%
+            progress=100  # 100% completed
         )
-        # Reset session start time for the next workout
-        del request.session['start_time']
-        return redirect(f'?index={index + 1}')  # Go to the next workout
+
+        # Reset the session start time for the next workout
+        request.session['start_time'] = time.time()
+
+        # Move to the next workout
+        next_index = index + 1
+        if next_index < len(workouts):
+            return redirect(f'/workout_session?index={next_index}')
+        else:
+            # If all workouts are completed, redirect to progress update page
+            return redirect('update_progress')
 
     context = {
         'current_workout': current_workout,
