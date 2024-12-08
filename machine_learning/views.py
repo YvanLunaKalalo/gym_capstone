@@ -194,9 +194,6 @@ def workout_recommendation_view(request):
 
     return HttpResponse(template.render(context, request))
 
-# View to track workout session
-from django.utils import timezone
-
 def workout_session_view(request):
     workouts = request.session.get('recommended_workouts', [])  # Fetch workouts from session
     index = int(request.GET.get('index', 0))
