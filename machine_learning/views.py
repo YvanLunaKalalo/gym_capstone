@@ -24,13 +24,6 @@ workout_data['combined_features'] = workout_data['combined_features'].fillna('')
 # Transform workout features using the vectorizer
 workout_features_matrix = vectorizer.transform(workout_data['combined_features'])
 
-# Add a mapping for sets, reps, and days based on workout level
-workout_level_mapping = {
-    'Beginner': {'sets': 3, 'reps': 10, 'days_per_week': 3},
-    'Intermediate': {'sets': 4, 'reps': 12, 'days_per_week': 4},
-    'Advanced': {'sets': 5, 'reps': 15, 'days_per_week': 5},
-}
-
 def bmi_view(request):
     template = loader.get_template('bmi.html')
     context = {}
