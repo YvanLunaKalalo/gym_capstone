@@ -278,13 +278,12 @@ def calculate_progress(user):
 
 def update_progress_view(request):
     # Get the user's progress data
-    total_duration, progress_message = calculate_progress(request.user)
+    progress = calculate_progress(request.user)
 
-    # Render the progress page template
     context = {
-        'total_duration': total_duration,  # Total workout duration in minutes
-        'progress_message': progress_message,  # Message about progress
-    }
+    'total_duration': progress["total_duration"],
+    'progress_message': progress["progress_message"]
+}
 
     return render(request, 'progress_tracker.html', context)
 
