@@ -183,39 +183,3 @@ def workout_recommendation_view(request):
         return render(request, 'workout_recommendations.html', context)  # Render the output template
 
     return HttpResponse(template.render(context, request))
-
-def log_workout_session_view(request):
-    user_profile = get_object_or_404(UserProfile, user=request.user)
-    workouts = Workout.objects.all()  # Fetch available workouts
-
-    if request.method == 'POST':
-        workout_id = request.POST.get('workout_id')
-        estimated_time = request.POST.get('estimated_time')
-        actual_time = request.POST.get('actual_time')
-        
-        workout = get_object_or_404(Workout, id=workout_id)
-        session = WorkoutSession.objects.create(
-            user_profile=user_profile,
-            workout=workout,
-            estimated_time_minutes=estimated_time,
-            actual_time_minutes=actual_time,
-            session_date=timezone.now()
-        )
-        
-        # Update progress tracker
-        progress_tracker, created = ProgressTracker.objects.get_or_create(user_profile=user_profile)
-        progress_tracker.update_progress()
-
-        return redirect('view_progress_tracker')  # Redirect to the progress tracker view
-
-    return render(request, 'log_workout_session.html', {'workouts': workouts})
-
-def view_progress_tracker_view(request):
-    user_profile = get_object_or_404(UserProfile, user=request.user)
-    progress_tracker, created = ProgressTracker.objects.get_or_create(user_profile=user_profile)
-
-    context = {
-        'progress_tracker': progress_tracker
-    }
-
-    return render(request, 'progress_tracker.html', context)
