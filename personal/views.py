@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.template import loader
 from personal.models import Contact
-from machine_learning.models import Workout, UserProfile, UserProgress
+from machine_learning.models import Workout, UserProfile, WorkoutSession, ProgressTracker
 
 def index_view(request):
     template = loader.get_template('index.html')
@@ -29,15 +29,17 @@ def dashboard_view(request):
     user_profile = UserProfile.objects.filter(user=request.user).first()
 
     # Fetch only the workouts and progress associated with the logged-in user
-    user_progress = UserProgress.objects.filter(user=request.user)
-
-    # Filter recommended workouts from UserProgress model
-    workouts = [progress.workout for progress in user_progress]
+    workout_sessions = WorkoutSession.objects.filter(user=request.user)
+    progress_trackers = ProgressTracker.objects.filter(user=request.user)
+    
+    # Extract the workouts from the workout sessions
+    workouts = [session.workout for session in workout_sessions]
 
     context = {
         'user_profile': user_profile,
-        'workouts': workouts,
-        'user_progress': user_progress,
+        'workouts': workouts,  # Workouts related to user's sessions
+        'workout_sessions': workout_sessions,  # User's workout sessions
+        'progress_trackers': progress_trackers,  # User's progress tracking data
     }
 
     return render(request, 'dashboard.html', context)

@@ -7,16 +7,26 @@
 {% endblock %}
 
 {% block content %}
-<h1>Workout Session</h1>
-    <p>Workout {{ workout_index + 1 }} of {{ total_workouts }}</p>
-    <h2>{{ current_workout.Title }}</h2>
-    <p>{{ current_workout.Desc }}</p>
-    
-    <form method="POST">
-        {% csrf_token %}
-        <label for="time_spent">Time spent on this workout (in minutes):</label>
-        <input type="number" name="time_spent" required>
-        <button type="submit">Next Workout</button>
-    </form>
+<h2>Your Workout Sessions</h2>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Workout</th>
+            <th>Duration</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for session in workout_sessions %}
+        <tr>
+            <td>{{ session.date }}</td>
+            <td>{{ session.workout.Title }}</td>
+            <td>{{ session.duration }} minutes</td>
+            <td>{{ session.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}
 

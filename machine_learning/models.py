@@ -37,15 +37,35 @@ class UserProfile(models.Model):
         verbose_name = "List of User Profiles"  # Singular name in admin
         verbose_name_plural = "User Profiles"  # Plural name in admin
     
-class UserProgress(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
-    time_spent = models.PositiveIntegerField(default=0)  # Time spent on this workout in minutes
-    progress = models.FloatField(default=0)  # Progress of the workout (0% - 100%)
-    completed = models.BooleanField(default=False)  # Mark if workout is completed
-    timestamp = models.DateTimeField(default=timezone.now)
-    date = models.DateField(auto_now_add=True)
-    progress_date = models.DateField(auto_now=True)  # Automatically update the date whenever the progress is updated   
+class WorkoutSession(models.Model):
+    user_profile = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
+    workout = models.ForeignKey('Workout', on_delete=models.CASCADE)
+    estimated_time_minutes = models.PositiveIntegerField()  # Estimated time in minutes
+    actual_time_minutes = models.PositiveIntegerField(blank=True, null=True)  # Actual time spent on the workout
+    session_date = models.DateField(default=timezone.now)
 
     def __str__(self):
-        return f'{self.user.username} - {self.workout.Title}'
+        return f"{self.user_profile.user.username} - {self.workout.Title} ({self.session_date})"
+    
+    class Meta:
+        verbose_name = "Workout Session"
+        verbose_name_plural = "Workout Sessions"
+        
+class ProgressTracker(models.Model):
+    user_profile = models.OneToOneField('UserProfile', on_delete=models.CASCADE)
+    total_workouts = models.PositiveIntegerField(default=0)  # Total number of workouts completed
+    total_time_minutes = models.PositiveIntegerField(default=0)  # Total time spent on workouts in minutes
+
+    def update_progress(self):
+        # Automatically update total time and total workouts when a new session is added
+        sessions = WorkoutSession.objects.filter(user_profile=self.user_profile)
+        self.total_workouts = sessions.count()
+        self.total_time_minutes = sum(session.actual_time_minutes for session in sessions if session.actual_time_minutes is not None)
+        self.save()
+
+    def __str__(self):
+        return f"Progress for {self.user_profile.user.username}"
+    
+    class Meta:
+        verbose_name = "Progress Tracker"
+        verbose_name_plural = "Progress Trackers"

@@ -5,9 +5,10 @@ from joblib import load
 import pandas as pd
 from django.conf import settings
 from sklearn.metrics.pairwise import cosine_similarity
-from .models import Workout, UserProfile, UserProgress
+from .models import Workout, UserProfile, WorkoutSession, ProgressTracker
 import time
 from django.utils import timezone
+from django.db.models import Count
 
 # Load the pre-trained model
 model1 = load('./Saved_Models/model1.joblib') # BMI
@@ -168,16 +169,6 @@ def workout_recommendation_view(request):
                     'Level': workout.get('Level', 'None')
                 }
             )
-
-            # Create UserProgress entry
-            UserProgress.objects.get_or_create(
-                user=request.user,
-                workout=workout_obj,
-                defaults={'progress': 0}  # Initialize progress at 0%
-            )
-            
-        # Calculate dynamic progress
-        # progress = calculate_progress(request.user)  # Dynamically calculate progress for the user
         
         request.session['recommended_workouts'] = recommended_workouts.to_dict(orient='records')  # Store in session
 
@@ -194,52 +185,23 @@ def workout_recommendation_view(request):
 
     return HttpResponse(template.render(context, request))
 
-def workout_session_view(request):
-    # Get the list of recommended workouts for the user
-    recommended_workouts = request.session.get('recommended_workouts', [])
-
-    if not recommended_workouts:
-        return HttpResponse("No workouts found. Please go to the recommendation page first.")
-
-    # Check if the user has completed the session
-    current_workout_index = request.session.get('current_workout_index', 0)
-
-    if current_workout_index >= len(recommended_workouts):
-        return redirect('progress_tracker')
-
-    current_workout = recommended_workouts[current_workout_index]
-    
-    if request.method == 'POST':
-        # Get the time spent on the current workout
-        time_spent = request.POST.get('time_spent')
-        if time_spent:
-            # Save the user's progress
-            user_progress = UserProgress.objects.get_or_create(
-                user=request.user,
-                workout=Workout.objects.get(id=current_workout['id']),
-                defaults={'time_spent': int(time_spent), 'completed': True}
-            )[0]
-            # Mark workout as completed and move to the next workout
-            current_workout_index += 1
-            request.session['current_workout_index'] = current_workout_index
-            
-            if current_workout_index >= len(recommended_workouts):
-                return redirect('progress_tracker')
-    
-    context = {
-        'current_workout': current_workout,
-        'workout_index': current_workout_index,
-        'total_workouts': len(recommended_workouts),
-    }
-    return render(request, 'workout_session.html', context)
+def workout_session_list_view(request):
+    # Fetch all Workout Sessions for the logged-in user
+    workout_sessions = WorkoutSession.objects.filter(user=request.user).order_by('-date')
+    context = {'workout_sessions': workout_sessions}
+    return render(request, 'workout_session_list.html', context)
 
 def progress_tracker_view(request):
-    # Fetch the user's progress data
-    user_progress = UserProgress.objects.filter(user=request.user)
-    total_time_spent = sum([p.time_spent for p in user_progress])
-
+    # Fetch the progress tracker for the logged-in user
+    progress_tracker = ProgressTracker.objects.filter(user=request.user).order_by('-date')
+    
+    # Create data for chart.js (progress counts over time)
+    workout_titles = [progress.workout.Title for progress in progress_tracker]
+    progress_counts = [progress.progress for progress in progress_tracker]
+    
     context = {
-        'user_progress': user_progress,
-        'total_time_spent': total_time_spent,
+        'progress_tracker': progress_tracker,
+        'workout_titles': workout_titles,
+        'progress_counts': progress_counts
     }
     return render(request, 'progress_tracker.html', context)

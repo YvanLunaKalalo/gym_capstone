@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import Workout, UserProfile, UserProgress
-from django.db.models import Count
+from .models import Workout, UserProfile, WorkoutSession, ProgressTracker
+from django.db.models import Count, Sum, F
 from django.shortcuts import render
 
 @admin.register(Workout)
@@ -43,21 +43,48 @@ class UserProfileAdmin(admin.ModelAdmin):
         }
         return super().changelist_view(request, extra_context=context)
 
-@admin.register(UserProgress)
-class UserProgressAdmin(admin.ModelAdmin):
-    list_display = ('user', 'workout', 'progress', 'date', 'progress_date')
-    search_fields = ('user__username', 'workout__Title')
+@admin.register(WorkoutSession)
+class WorkoutSessionAdmin(admin.ModelAdmin):
+    list_display = ('user_profile', 'workout', 'estimated_time_minutes', 'actual_time_minutes', 'session_date')
+    search_fields = ('user_profile__user__username', 'workout__Title', 'session_date')
+    list_filter = ('session_date',)
     
-    change_list_template = "admin/userprogress_change_list.html"  # Custom template for change list
+    change_list_template = "admin/workoutsession_change_list.html"  # Custom template for WorkoutSession
 
     def changelist_view(self, request, extra_context=None):
-        # Data for pie chart specific to user progress
-        progress_data = UserProgress.objects.values('workout__Title').annotate(total_progress=Count('id'))
-        workout_titles = [data['workout__Title'] for data in progress_data]
-        progress_counts = [data['total_progress'] for data in progress_data]
+        # Fetching workout sessions for chart data
+        workout_sessions = WorkoutSession.objects.values('workout__Title').annotate(
+            session_count=Count('id')
+        )
 
-        context = {
-            'workout_titles': workout_titles,
-            'progress_counts': progress_counts,
-        }
-        return super().changelist_view(request, extra_context=context)
+        workout_titles = [session['workout__Title'] for session in workout_sessions]
+        progress_counts = [session['session_count'] for session in workout_sessions]
+
+        extra_context = extra_context or {}
+        extra_context['workout_titles'] = workout_titles
+        extra_context['progress_counts'] = progress_counts
+        
+        return super().changelist_view(request, extra_context=extra_context)
+
+@admin.register(ProgressTracker)
+class ProgressTrackerAdmin(admin.ModelAdmin):
+    list_display = ('user_profile', 'total_workouts', 'total_time_minutes')
+    search_fields = ('user_profile__user__username',)
+
+    change_list_template = "admin/progresstracker_change_list.html"  # Custom template for ProgressTracker
+
+    def changelist_view(self, request, extra_context=None):
+        # Fetching progress data for chart
+        progress_data = ProgressTracker.objects.values('user_profile__user__username').annotate(
+            total_workouts=F('total_workouts'),
+            total_time_minutes=F('total_time_minutes')
+        )
+
+        user_names = [progress['user_profile__user__username'] for progress in progress_data]
+        total_workouts = [progress['total_workouts'] for progress in progress_data]
+
+        extra_context = extra_context or {}
+        extra_context['user_names'] = user_names
+        extra_context['total_workouts'] = total_workouts
+        
+        return super().changelist_view(request, extra_context=extra_context)

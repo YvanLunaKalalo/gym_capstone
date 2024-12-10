@@ -7,22 +7,60 @@
 {% endblock %}
 
 {% block content %}
-<h1>Progress Tracker</h1>
-<p>Total time spent on workouts: {{ total_time_spent }} minutes</p>
+<h2>Your Progress Tracker</h2>
 
-<h2>Your Progress</h2>
-<table>
-    <tr>
-        <th>Workout</th>
-        <th>Time Spent (minutes)</th>
-        <th>Status</th>
-    </tr>
-    {% for progress in user_progress %}
-    <tr>
-        <td>{{ progress.workout.Title }}</td>
-        <td>{{ progress.time_spent }}</td>
-        <td>{% if progress.completed %} Completed {% else %} In Progress {% endif %}</td>
-    </tr>
-    {% endfor %}
+<div class="chart-container">
+    <canvas id="userProgressChart"></canvas>
+</div>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Workout</th>
+            <th>Progress</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tracker in progress_tracker %}
+        <tr>
+            <td>{{ tracker.date }}</td>
+            <td>{{ tracker.workout.Title }}</td>
+            <td>{{ tracker.progress }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var workoutTitles = {{ workout_titles|safe }};
+    var progressCounts = {{ progress_counts|safe }};
+    
+    var ctx = document.getElementById('userProgressChart').getContext('2d');
+    var userProgressChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: workoutTitles,
+            datasets: [{
+                label: 'Progress Over Time',
+                data: progressCounts,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    enabled: true,
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}

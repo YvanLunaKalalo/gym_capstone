@@ -1,0 +1,59 @@
+{% extends 'admin/change_list.html' %}
+
+{% block extrahead %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="chart-container">
+        <canvas id="progressTrackerChart"></canvas>
+    </div>
+
+    {{ block.super }}
+
+    <script>
+        var userNames = {{ user_names|safe }};
+        var totalWorkouts = {{ total_workouts|safe }};
+        
+        var ctx = document.getElementById('progressTrackerChart').getContext('2d');
+        var progressTrackerChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: userNames,
+                datasets: [{
+                    label: 'Total Workouts per User',
+                    data: totalWorkouts,
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        enabled: true,
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}
