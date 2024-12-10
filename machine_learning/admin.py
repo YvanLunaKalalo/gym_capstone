@@ -49,7 +49,7 @@ class WorkoutSessionAdmin(admin.ModelAdmin):
     search_fields = ('user_profile__user__username', 'workout__Title', 'session_date')
     list_filter = ('session_date',)
     
-    change_list_template = "admin/workoutsession_change_list.html"  # Custom template for WorkoutSession
+    change_list_template = "admin/workout_session_change_list.html"  # Custom template for WorkoutSession
 
     def changelist_view(self, request, extra_context=None):
         # Fetching workout sessions for chart data
@@ -71,7 +71,7 @@ class ProgressTrackerAdmin(admin.ModelAdmin):
     list_display = ('user_profile', 'total_workouts', 'total_time_minutes')
     search_fields = ('user_profile__user__username',)
 
-    change_list_template = "admin/progresstracker_change_list.html"  # Custom template for ProgressTracker
+    change_list_template = "admin/progress_tracker_change_list.html"  # Custom template for ProgressTracker
 
     def changelist_view(self, request, extra_context=None):
         # Fetching progress data for chart
