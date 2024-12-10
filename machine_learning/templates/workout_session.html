@@ -7,39 +7,30 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <h2 class="text-center">Workout Session: {{ current_workout }}</h2>
-
-            <div class="card">
-                <div class="card-body">
-                    <h4>Description:</h4>
-                    <p>{{ workout.Desc }}</p>
-                    <p><strong>Type:</strong> {{ workout.Type }}</p>
-                    <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
-                    <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
-                    <p><strong>Level:</strong> {{ workout.Level }}</p>
-                </div>
-            </div>
-
-            <div class="mt-4">
-                <h5>Workout Duration: {{ workout_duration }} minutes</h5>
-                <h5>Elapsed Time: {{ elapsed_time }} minutes</h5>
-            </div>
-
-            <div class="mt-4">
-                <a href="?complete=true&index={{ index }}" class="btn btn-success">Complete Workout</a>
-            </div>
-
-            <div class="mt-4">
-                {% if index + 1 < total_workouts %}
-                    <a href="/workout_session/?index={{ index + 1 }}" class="btn btn-primary">Next Workout</a>
-                {% else %}
-                    <a href="{% url 'update_progress' %}" class="btn btn-primary">Finish & Track Progress</a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
+{% if selected_workout %}
+    <h3>Current Workout: {{ selected_workout.Title }}</h3>
+    <p>{{ selected_workout.Desc }}</p>
+    
+    <form method="POST">
+      {% csrf_token %}
+      <button type="submit" name="end_workout">End Workout</button>
+    </form>
+  {% else %}
+    <p>Select a workout to begin:</p>
+    <form method="POST">
+      {% csrf_token %}
+      <label for="workout_title">Choose Workout:</label>
+      <select name="workout_title">
+        {% for workout in recommended_workouts %}
+          <option value="{{ workout.Title }}">{{ workout.Title }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" name="start_workout">Start Workout</button>
+    </form>
+  {% endif %}
+  
+  {% if message %}
+    <p>{{ message }}</p>
+  {% endif %}
+  
 {% endblock %}

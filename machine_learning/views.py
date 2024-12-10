@@ -177,14 +177,14 @@ def workout_recommendation_view(request):
             )
             
         # Calculate dynamic progress
-        progress = calculate_progress(request.user)  # Dynamically calculate progress for the user
+        # progress = calculate_progress(request.user)  # Dynamically calculate progress for the user
         
         request.session['recommended_workouts'] = recommended_workouts.to_dict(orient='records')  # Store in session
 
         # Pass recommended workouts to the template
         context = {
             "recommended_workouts" : recommended_workouts[['Title', 'Desc', 'Type', 'BodyPart', 'Equipment', 'Level']].to_dict(orient='records'),
-            "progress": progress,  # Pass progress to the template
+            # "progress": progress,  # Pass progress to the template
             "workout_plan": workout_plan,  # Include workout plan details in the context
         }
         
@@ -195,108 +195,73 @@ def workout_recommendation_view(request):
     return HttpResponse(template.render(context, request))
 
 def workout_session_view(request):
-    workouts = request.session.get('recommended_workouts', [])  # Fetch workouts from session
-    index = int(request.GET.get('index', 0))
+    """
+    View to handle workout sessions, track time, and update user progress.
+    """
+    template = loader.get_template("workout_session.html")
+    context = {}
 
-    if index >= len(workouts):  # All workouts are completed
-        return redirect('update_progress')  # Redirect to the progress page
+    # Retrieve recommended workouts from the session
+    recommended_workouts = request.session.get('recommended_workouts')
 
-    current_workout = workouts[index]
+    if request.method == 'POST':
+        # Start time when workout session begins
+        workout_start_time = time.time()
 
-    # Store the start time in the session if it's the first workout
-    if 'start_time' not in request.session:
-        request.session['start_time'] = time.time()
+        # Assuming 'workout_title' is passed from the form (select which workout to do)
+        workout_title = request.POST.get('workout_title', '')
 
-    # Check time elapsed for current workout
-    elapsed_time = time.time() - request.session['start_time']
+        # Fetch the workout details
+        selected_workout = get_object_or_404(Workout, Title=workout_title)
 
-    # Calculate workout duration in minutes
-    workout_duration = int(elapsed_time / 60)  # Convert seconds to minutes
+        # Start the workout session (tracking time)
+        if 'start_workout' in request.POST:
+            request.session['workout_start_time'] = workout_start_time
+            context['message'] = f"Workout '{selected_workout.Title}' started!"
+            context['selected_workout'] = selected_workout
+            return render(request, 'workout_session.html', context)
 
-    # Update elapsed time on each page load
-    request.session['elapsed_time'] = workout_duration
+        # End the workout session
+        if 'end_workout' in request.POST:
+            workout_end_time = time.time()
+            workout_duration = workout_end_time - request.session.get('workout_start_time', workout_start_time)
 
-    # On workout completion, save progress
-    if request.GET.get('complete') == 'true':
-        # Assuming progress is marked 100% on completion
-        workout_obj = get_object_or_404(Workout, Title=current_workout['Title'])
+            # Convert time to minutes
+            duration_in_minutes = round(workout_duration / 60, 2)
 
-        # Save completed workout data to CompletedWorkout model
-        CompletedWorkout.objects.create(
-            user=request.user,
-            workout=workout_obj,
-            start_time=timezone.now(),
-            end_time=timezone.now(),
-            duration=workout_duration,
-            progress=100  # 100% completed
-        )
+            # Update progress in UserProgress
+            workout_obj, created = UserProgress.objects.get_or_create(
+                user=request.user,
+                workout=selected_workout,
+                defaults={'progress': 0}  # If new, start with 0% progress
+            )
 
-        # Reset the session start time for the next workout
-        request.session['start_time'] = time.time()
+            # Update progress (increment by some percentage or based on logic)
+            workout_obj.progress += 20  # e.g., 20% per workout session
+            workout_obj.save()
 
-        # Move to the next workout
-        next_index = index + 1
-        if next_index < len(workouts):
-            return redirect(f'/workout_session?index={next_index}')
-        else:
-            # If all workouts are completed, redirect to progress update page
+            # Pass workout and time spent to context
+            context['message'] = f"Workout '{selected_workout.Title}' completed! Duration: {duration_in_minutes} minutes."
+            context['selected_workout'] = selected_workout
+
+            # Redirect to the progress tracker view
             return redirect('update_progress')
 
-    context = {
-        'current_workout': current_workout,
-        'workout_duration': workout_duration,
-        'index': index,
-        'total_workouts': len(workouts),
-    }
-
-    return render(request, 'workout_session.html', context)
-
-# Function to calculate the user's progress based on completed workouts
-def calculate_progress(user):
-    # Fetch completed workouts
-    completed_workouts = CompletedWorkout.objects.filter(user=user)
-    
-    # Calculate total workout duration
-    total_duration = sum([workout.duration for workout in completed_workouts])
-
-    # Fetch the user's profile to calculate BMI progress
-    profile = UserProfile.objects.get(user=user)
-    initial_bmi = profile.BMI  # The BMI at the time of profile creation
-    updated_bmi = profile.BMI  # The BMI after completing the workouts
-
-    # Compare the initial and updated BMI
-    if initial_bmi and updated_bmi:
-        progress_message = "Your progress has been tracked!"
-        if updated_bmi < initial_bmi:
-            progress_message += " You've reduced your BMI, great job!"
-        else:
-            progress_message += " Keep working on improving your fitness!"
-    else:
-        progress_message = "Your BMI progress could not be tracked."
-    
-    return total_duration, progress_message
+    # If no workout is started, show available workouts
+    context['recommended_workouts'] = recommended_workouts
+    return HttpResponse(template.render(context, request))
 
 def update_progress_view(request):
-    # Get the user's progress data
-    progress = calculate_progress(request.user)
+    """
+    View to track and display the user's workout progress.
+    """
+    progress_list = UserProgress.objects.filter(user=request.user)
 
-    context = {
-    'total_duration': progress["total_duration"],
-    'progress_message': progress["progress_message"]
-}
+    # Calculate total progress
+    total_progress = sum([p.progress for p in progress_list])
 
-    return render(request, 'progress_tracker.html', context)
-
-def calculate_bmi(request):
-    """Calculate updated BMI based on user input."""
-    weight = request.POST.get('Weight')
-    height = request.POST.get('Height')
-
-    if weight and height:
-        try:
-            height_in_meters = float(height) / 100  # Convert cm to meters
-            bmi = float(weight) / (height_in_meters ** 2)
-            return round(bmi, 2)
-        except (ValueError, ZeroDivisionError):
-            return None
-    return None
+    # Render the progress tracking template
+    return render(request, 'progress_tracker.html', {
+        'progress_list': progress_list,
+        'total_progress': total_progress,
+    })

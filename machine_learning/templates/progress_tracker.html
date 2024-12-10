@@ -7,30 +7,14 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8 col-md-10 col-sm-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h2 class="card-title text-center">Progress Tracker</h2>
-                    
-                    <div class="progress mt-4">
-                        <div class="progress-bar" role="progressbar" style="width: {{ total_duration }}%" aria-valuenow="{{ total_duration }}" aria-valuemin="0" aria-valuemax="100">
-                            Total Workout Duration: {{ total_duration }} minutes
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <h4>Progress Summary:</h4>
-                        <p>{{ progress_message }}</p>
-                    </div>
-
-                    <div class="text-center mt-4">
-                        <a href="{% url 'index' %}" class="btn btn-primary">Go to Dashboard</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+  <h2>Your Progress Tracker</h2>
+  
+  <ul>
+    {% for progress in progress_list %}
+      <li>{{ progress.workout.Title }} - Progress: {{ progress.progress }}%</li>
+    {% endfor %}
+  </ul>
+  
+  <p>Total Progress: {{ total_progress }}%</p>
+  
 {% endblock %}
