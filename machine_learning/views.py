@@ -170,16 +170,29 @@ def workout_recommendation_view(request):
                 }
             )
         
+            # Create WorkoutSession for tracking workout completion
+            WorkoutSession.objects.create(
+                user=request.user,
+                workout=workout_obj,
+                status='Not Started',  # Default status
+                date_started=None,  # Can be updated later when the user starts
+                date_completed=None  # Will be updated when completed
+            )
+
+            # Create a ProgressTracker entry for tracking user progress with workouts
+            ProgressTracker.objects.create(
+                user=request.user,
+                workout=workout_obj,
+                progress=0  # Initial progress value, can be updated later
+            )
+        
         request.session['recommended_workouts'] = recommended_workouts.to_dict(orient='records')  # Store in session
 
         # Pass recommended workouts to the template
         context = {
             "recommended_workouts" : recommended_workouts[['Title', 'Desc', 'Type', 'BodyPart', 'Equipment', 'Level']].to_dict(orient='records'),
-            # "progress": progress,  # Pass progress to the template
             "workout_plan": workout_plan,  # Include workout plan details in the context
         }
-        
-        # print(context["recommended_workouts"])
 
         return render(request, 'workout_recommendations.html', context)  # Render the output template
 
