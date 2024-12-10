@@ -40,7 +40,6 @@ class UserProgress(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
     progress = models.PositiveIntegerField()  # Percentage or count of completed workouts
-    time_spent = models.FloatField(default=0)  # Time spent in minutes
     date = models.DateField(auto_now_add=True)
     progress_date = models.DateField(auto_now=True)  # Automatically update the date whenever the progress is updated
 
@@ -51,13 +50,16 @@ class UserProgress(models.Model):
         verbose_name = "List of User Progress"  # Singular name in admin
         verbose_name_plural = "User Progress"  # Plural name in admin
         
-class CompletedWorkout(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # User who completed the workout
-    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)  # Workout that was completed
-    start_time = models.DateTimeField(auto_now_add=True)  # Start time of the workout session
-    end_time = models.DateTimeField(null=True, blank=True)  # End time of the workout session
-    duration = models.PositiveIntegerField()  # Duration of the workout in minutes
-    progress = models.PositiveIntegerField()  # Completion progress (e.g., percentage of workout completed)
-    
+class WorkoutSession(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    time_spent = models.DurationField(null=True, blank=True)
+
     def __str__(self):
-        return f"{self.user.username} - {self.workout.Title} - {self.duration} mins"
+        return f"{self.user.username} - {self.workout.Title}"
+
+    class Meta:
+        verbose_name = "Workout Session"
+        verbose_name_plural = "Workout Sessions"

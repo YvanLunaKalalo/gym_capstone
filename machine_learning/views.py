@@ -5,7 +5,7 @@ from joblib import load
 import pandas as pd
 from django.conf import settings
 from sklearn.metrics.pairwise import cosine_similarity
-from .models import Workout, UserProfile, UserProgress, CompletedWorkout
+from .models import Workout, UserProfile, UserProgress, WorkoutSession
 import time
 from django.utils import timezone
 
@@ -195,55 +195,46 @@ def workout_recommendation_view(request):
     return HttpResponse(template.render(context, request))
 
 def workout_session_view(request):
-    # Ensure the user has recommended workouts
-    if 'recommended_workouts' not in request.session:
-        return redirect('recommend')
+    # Get the first recommended workout from the session (or default)
+    recommended_workouts = request.session.get('recommended_workouts', [])
+    if not recommended_workouts:
+        return redirect('recommend')  # Redirect if no recommended workouts available
 
-    recommended_workouts = request.session.get('recommended_workouts')
-
-    # Display the workout session
-    workout_index = int(request.GET.get('workout_index', 0))
-    workout = recommended_workouts[workout_index]  # Get the workout based on index
-
-    if request.method == 'POST':
-        # The user finished the workout; store the time spent
-        time_spent = float(request.POST.get('time_spent', 0))  # Time spent in minutes
-        workout_title = workout['Title']
-
-        # Find or create the workout in the database
-        workout_obj = Workout.objects.get(Title=workout_title)
-
-        # Update or create progress for the user
-        user_progress, created = UserProgress.objects.get_or_create(
-            user=request.user,
-            workout=workout_obj,
-            defaults={'progress': 0}  # You can track progress based on another system, e.g., completion percentage
-        )
-        user_progress.time_spent += time_spent
-        user_progress.save()
-
-        # Redirect to the progress tracker page
-        return redirect('progress')
-
-    # Render the workout session template
+    workout_data = recommended_workouts[0]  # Use the first workout
+    workout = get_object_or_404(Workout, Title=workout_data['Title'])
+    
+    # Start a new workout session for the user
+    session = WorkoutSession.objects.create(user=request.user, workout=workout)
+    
     context = {
         'workout': workout,
-        'workout_index': workout_index,
-        'total_workouts': len(recommended_workouts)
+        'session_id': session.id,  # Session ID for tracking
     }
+    
     return render(request, 'workout_session.html', context)
 
+def complete_workout_view(request, session_id):
+    # Get the workout session
+    session = get_object_or_404(WorkoutSession, id=session_id)
+
+    # End the workout session and calculate time spent
+    session.end_time = timezone.now()
+    session.time_spent = session.end_time - session.start_time
+    session.save()
+
+    # Update the UserProgress model
+    UserProgress.objects.get_or_create(
+        user=request.user,
+        workout=session.workout,
+        defaults={'progress': 100}  # Mark as 100% complete for now
+    )
+
+    # Redirect to progress tracker page
+    return redirect('update_progress')
+
 def update_progress_view(request):
-    """
-    View to track and display the user's workout progress.
-    """
-    progress_list = UserProgress.objects.filter(user=request.user)
-
-    # Calculate total progress
-    total_progress = sum([p.progress for p in progress_list])
-
-    # Render the progress tracking template
-    return render(request, 'progress_tracker.html', {
-        'progress_list': progress_list,
-        'total_progress': total_progress,
-    })
+    user_progress = UserProgress.objects.filter(user=request.user)
+    context = {
+        'user_progress': user_progress,
+    }
+    return render(request, 'progress_tracker.html', context)

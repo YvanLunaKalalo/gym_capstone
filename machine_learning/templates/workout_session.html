@@ -7,22 +7,26 @@
 {% endblock %}
 
 {% block content %}
-<h1>Workout Session: {{ workout.Title }}</h1>
-<p>{{ workout.Desc }}</p>
-<p>Type: {{ workout.Type }}</p>
-<p>Level: {{ workout.Level }}</p>
-<p>Body Part: {{ workout.BodyPart }}</p>
+    <h2>Workout Session: {{ workout.Title }}</h2>
+    <p>{{ workout.Desc }}</p>
+    <p>Duration: <span id="timer">00:00</span></p>
+    
+    <form method="POST" action="{% url 'complete_workout' session_id=session_id %}">
+        {% csrf_token %}
+        <button type="submit">Complete Workout</button>
+    </form>
 
-<!-- Add a simple timer interface -->
-<form method="POST">
-    {% csrf_token %}
-    <div>
-        <label for="time_spent">Time Spent (in minutes):</label>
-        <input type="number" id="time_spent" name="time_spent" min="0" required>
-    </div>
-    <button type="submit">Complete Workout</button>
-</form>
+    <script>
+        let timerElement = document.getElementById('timer');
+        let startTime = Date.now();
+        
+        function updateTimer() {
+            let timeSpent = Math.floor((Date.now() - startTime) / 1000); // seconds
+            let minutes = Math.floor(timeSpent / 60);
+            let seconds = timeSpent % 60;
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
 
-<p>Workout Progress: {{ workout_index + 1 }} of {{ total_workouts }}</p>
-
+        setInterval(updateTimer, 1000); // Update every second
+    </script>
 {% endblock %}
