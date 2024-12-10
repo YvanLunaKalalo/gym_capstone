@@ -7,26 +7,22 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2>Your Workout Progress</h2>
-    <p>Total Workouts Completed: {{ total_workouts }}</p>
-    <p>Total Time Spent: {{ total_time_spent }} minutes</p>
+<h1>Progress Tracker</h1>
+<p>Total time spent on workouts: {{ total_time_spent }} minutes</p>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th scope="col">Workout Title</th>
-                <th scope="col">Time Spent (minutes)</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for progress in user_progress %}
-            <tr>
-                <td>{{ progress.workout.Title }}</td>
-                <td>{{ progress.time_spent }} minutes</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+<h2>Your Progress</h2>
+<table>
+    <tr>
+        <th>Workout</th>
+        <th>Time Spent (minutes)</th>
+        <th>Status</th>
+    </tr>
+    {% for progress in user_progress %}
+    <tr>
+        <td>{{ progress.workout.Title }}</td>
+        <td>{{ progress.time_spent }}</td>
+        <td>{% if progress.completed %} Completed {% else %} In Progress {% endif %}</td>
+    </tr>
+    {% endfor %}
+</table>
 {% endblock %}

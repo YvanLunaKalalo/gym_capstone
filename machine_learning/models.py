@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 class Workout(models.Model):
     Title = models.CharField(max_length=255)
@@ -39,10 +40,12 @@ class UserProfile(models.Model):
 class UserProgress(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
-    progress = models.FloatField(default=0)  # Percentage progress
-    time_spent = models.FloatField(default=0)  # Time spent on the workout (minutes)
+    time_spent = models.PositiveIntegerField(default=0)  # Time spent on this workout in minutes
+    progress = models.FloatField(default=0)  # Progress of the workout (0% - 100%)
+    completed = models.BooleanField(default=False)  # Mark if workout is completed
+    timestamp = models.DateTimeField(default=timezone.now)
     date = models.DateField(auto_now_add=True)
-    progress_date = models.DateField(auto_now=True)  # Automatically update the date whenever the progress is updated
+    progress_date = models.DateField(auto_now=True)  # Automatically update the date whenever the progress is updated   
 
     def __str__(self):
         return f'{self.user.username} - {self.workout.Title}'

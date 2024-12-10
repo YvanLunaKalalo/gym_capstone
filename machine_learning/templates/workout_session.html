@@ -9,23 +9,16 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2>Workout {{ current_index }} of {{ total_workouts }}</h2>
-    <h3>{{ workout.Title }}</h3>
-    <p>{{ workout.Desc }}</p>
-
+<h1>Workout Session</h1>
+    <p>Workout {{ workout_index + 1 }} of {{ total_workouts }}</p>
+    <h2>{{ current_workout.Title }}</h2>
+    <p>{{ current_workout.Desc }}</p>
+    
     <form method="POST">
         {% csrf_token %}
-        <div class="mb-3">
-            <label for="time_spent" class="form-label">Time spent (in minutes):</label>
-            <input type="number" class="form-control" id="time_spent" name="time_spent" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Complete Workout</button>
+        <label for="time_spent">Time spent on this workout (in minutes):</label>
+        <input type="number" name="time_spent" required>
+        <button type="submit">Next Workout</button>
     </form>
-
-    {% if current_index >= total_workouts %}
-        <a href="{% url 'track_progress' %}" class="btn btn-success mt-4">Track Progress</a>
-    {% endif %}
-</div>
 {% endblock %}
 

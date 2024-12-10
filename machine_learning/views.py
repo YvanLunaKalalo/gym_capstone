@@ -195,66 +195,51 @@ def workout_recommendation_view(request):
     return HttpResponse(template.render(context, request))
 
 def workout_session_view(request):
-    # Check if workouts are already stored in session
-    if 'recommended_workouts' not in request.session:
-        return redirect('workout_recommendation_view')  # Redirect to workout recommendation if not present
+    # Get the list of recommended workouts for the user
+    recommended_workouts = request.session.get('recommended_workouts', [])
 
-    # Get the list of recommended workouts from session
-    recommended_workouts = request.session['recommended_workouts']
+    if not recommended_workouts:
+        return HttpResponse("No workouts found. Please go to the recommendation page first.")
 
-    # Get the current workout index from session, default to 0
-    current_index = request.session.get('current_workout_index', 0)
+    # Check if the user has completed the session
+    current_workout_index = request.session.get('current_workout_index', 0)
 
-    # Check if there are more workouts to show
-    if current_index >= len(recommended_workouts):
-        return redirect('track_progress')  # If all workouts are completed, go to track progress
+    if current_workout_index >= len(recommended_workouts):
+        return redirect('progress_tracker')
 
-    # Get the current workout
-    workout = recommended_workouts[current_index]
-
+    current_workout = recommended_workouts[current_workout_index]
+    
     if request.method == 'POST':
         # Get the time spent on the current workout
-        time_spent = request.POST.get('time_spent', 0)
-
-        # Get or create a UserProgress entry for the workout
-        workout_obj = Workout.objects.get(Title=workout['Title'])
-        user_progress, created = UserProgress.objects.get_or_create(
-            user=request.user,
-            workout=workout_obj,
-            defaults={'time_spent': 0}  # Initialize time_spent if not created
-        )
-
-        # Update the time spent on the workout
-        user_progress.time_spent += float(time_spent)
-        user_progress.save()
-
-        # Move to the next workout
-        current_index += 1
-        request.session['current_workout_index'] = current_index  # Update the session with the new workout index
-
-        # Redirect to the next workout
-        return redirect('workout_session_view')
-
+        time_spent = request.POST.get('time_spent')
+        if time_spent:
+            # Save the user's progress
+            user_progress = UserProgress.objects.get_or_create(
+                user=request.user,
+                workout=Workout.objects.get(id=current_workout['id']),
+                defaults={'time_spent': int(time_spent), 'completed': True}
+            )[0]
+            # Mark workout as completed and move to the next workout
+            current_workout_index += 1
+            request.session['current_workout_index'] = current_workout_index
+            
+            if current_workout_index >= len(recommended_workouts):
+                return redirect('progress_tracker')
+    
     context = {
-        'workout': workout,  # The current workout
-        'current_index': current_index + 1,  # Display workout number (1-based)
-        'total_workouts': len(recommended_workouts),  # Total number of workouts
+        'current_workout': current_workout,
+        'workout_index': current_workout_index,
+        'total_workouts': len(recommended_workouts),
     }
-
     return render(request, 'workout_session.html', context)
 
-
-def track_progress_view(request):
-    # Fetch all UserProgress entries for the logged-in user
+def progress_tracker_view(request):
+    # Fetch the user's progress data
     user_progress = UserProgress.objects.filter(user=request.user)
-
-    # Calculate the total time spent on all workouts
-    total_time_spent = sum(progress.time_spent for progress in user_progress)
+    total_time_spent = sum([p.time_spent for p in user_progress])
 
     context = {
         'user_progress': user_progress,
         'total_time_spent': total_time_spent,
-        'total_workouts': len(user_progress),
     }
-
-    return render(request, 'track_progress.html', context)
+    return render(request, 'progress_tracker.html', context)
