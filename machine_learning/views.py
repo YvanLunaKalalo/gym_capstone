@@ -169,9 +169,10 @@ def workout_recommendation_view(request):
                 }
             )
             recommended_sessions.append(workout_obj)
-        
+
         # Add the progress tracker to the context
         progress_data = ProgressTracker.objects.filter(user=request.user).order_by('-date_added')
+
    
         # Pass recommended workouts to the template
         context = {
