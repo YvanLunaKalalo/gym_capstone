@@ -39,13 +39,10 @@ class UserProfile(models.Model):
 class UserProgress(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
-    progress = models.PositiveIntegerField()  # Percentage or count of completed workouts
+    progress = models.FloatField(default=0)  # Percentage progress
+    time_spent = models.FloatField(default=0)  # Time spent on the workout (minutes)
     date = models.DateField(auto_now_add=True)
     progress_date = models.DateField(auto_now=True)  # Automatically update the date whenever the progress is updated
 
     def __str__(self):
-        return f"{self.user.username} - {self.workout.Title} - {self.progress}%"
-    
-    class Meta:
-        verbose_name = "List of User Progress"  # Singular name in admin
-        verbose_name_plural = "User Progress"  # Plural name in admin
+        return f'{self.user.username} - {self.workout.Title}'

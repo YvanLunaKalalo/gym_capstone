@@ -8,14 +8,25 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2>Progress Tracker</h2>
-    <ul class="list-group">
-        {% for progress in user_progress %}
-            <li class="list-group-item">
-                <strong>{{ progress.workout.Title }}</strong> - {{ progress.progress }}% complete
-            </li>
-        {% endfor %}
-    </ul>
-    <a href="{% url 'workout_session' %}" class="btn btn-primary mt-3">Continue Workout</a>
+    <h2>Your Workout Progress</h2>
+    <p>Total Workouts Completed: {{ total_workouts }}</p>
+    <p>Total Time Spent: {{ total_time_spent }} minutes</p>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Workout Title</th>
+                <th scope="col">Time Spent (minutes)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for progress in user_progress %}
+            <tr>
+                <td>{{ progress.workout.Title }}</td>
+                <td>{{ progress.time_spent }} minutes</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

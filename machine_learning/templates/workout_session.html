@@ -10,23 +10,22 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2>Workout Session: {{ workout.Title }}</h2>
-    <p><strong>Description:</strong> {{ workout.Desc }}</p>
-    <p><strong>Type:</strong> {{ workout.Type }}</p>
-    <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
-    <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
-    <p><strong>Level:</strong> {{ workout.Level }}</p>
-    
-    <!-- Display the time spent on the workout -->
-    <p><strong>Time Spent:</strong> {{ start_time|date:"H:i:s" }} (Start Time)</p>
+    <h2>Workout {{ current_index }} of {{ total_workouts }}</h2>
+    <h3>{{ workout.Title }}</h3>
+    <p>{{ workout.Desc }}</p>
 
-    <!-- Proceed to the next workout button -->
     <form method="POST">
         {% csrf_token %}
-        <button type="submit" class="btn btn-primary">Next Workout</button>
+        <div class="mb-3">
+            <label for="time_spent" class="form-label">Time spent (in minutes):</label>
+            <input type="number" class="form-control" id="time_spent" name="time_spent" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Complete Workout</button>
     </form>
 
-    <a href="{% url 'progress' %}" class="btn btn-secondary mt-3">Go to Progress Tracker</a>
+    {% if current_index >= total_workouts %}
+        <a href="{% url 'track_progress' %}" class="btn btn-success mt-4">Track Progress</a>
+    {% endif %}
 </div>
 {% endblock %}
 

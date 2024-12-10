@@ -6,5 +6,5 @@ urlpatterns = [
     path('recommend/', views.workout_recommendation_view, name="recommend"),
     path('workout-recommendations/', views.workout_recommendation_view, name='workout_recommendations'),
     path('workout-session/', views.workout_session_view, name='workout_session'),
-    path('progress/', views.update_progress_view, name='update_progress'),
+    path('track-progress/', views.track_progress_view, name='track_progress'),
 ]
