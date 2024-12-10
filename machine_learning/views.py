@@ -159,25 +159,25 @@ def workout_recommendation_view(request):
                 }
             )
         
-            # Create a WorkoutSession for each recommended workout
-            session = WorkoutSession(
+            # Create a workout session for the user
+            workout_session = WorkoutSession.objects.create(
                 user_profile=profile,
                 workout=workout_obj,
-                estimated_time_minutes=30  # Default estimated time, can be adjusted based on the workout
+                estimated_time_minutes=30,  # Set a default estimated time for the workout
+                session_date=timezone.now()
             )
-            session.save()
-            recommended_sessions.append(session)
+            recommended_sessions.append(workout_session)
         
-            # Update the ProgressTracker model
+        # Update the user's progress
         progress_tracker, created = ProgressTracker.objects.get_or_create(user_profile=profile)
-        progress_tracker.update_progress()  # This updates the progress based on added sessions 
+        progress_tracker.update_progress()
                 
         # Pass recommended workouts to the template
         context = {
             "recommended_workouts" : recommended_workouts[['Title', 'Desc', 'Type', 'BodyPart', 'Equipment', 'Level']].to_dict(orient='records'),
-        }
-        context['progress'] = progress_tracker
+            "progress": progress_tracker,
 
+        }
 
         return render(request, 'workout_recommendations.html', context)  # Render the output template
 

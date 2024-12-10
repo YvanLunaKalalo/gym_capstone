@@ -52,20 +52,10 @@ class WorkoutSession(models.Model):
         verbose_name_plural = "Workout Sessions"
         
 class ProgressTracker(models.Model):
-    user_profile = models.OneToOneField('UserProfile', on_delete=models.CASCADE)
-    total_workouts = models.PositiveIntegerField(default=0)  # Total number of workouts completed
-    total_time_minutes = models.PositiveIntegerField(default=0)  # Total time spent on workouts in minutes
-
-    def update_progress(self):
-        # Automatically update total time and total workouts when a new session is added
-        sessions = WorkoutSession.objects.filter(user_profile=self.user_profile)
-        self.total_workouts = sessions.count()
-        self.total_time_minutes = sum(session.actual_time_minutes for session in sessions if session.actual_time_minutes is not None)
-        self.save()
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
+    completed = models.BooleanField(default=False)
+    date_added = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Progress for {self.user_profile.user.username}"
-    
-    class Meta:
-        verbose_name = "Progress Tracker"
-        verbose_name_plural = "Progress Trackers"
+        return f"{self.user} - {self.workout.Title} - {'Completed' if self.completed else 'Incomplete'}"

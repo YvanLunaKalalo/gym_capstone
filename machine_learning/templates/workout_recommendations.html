@@ -55,7 +55,17 @@
                     <p class="mb-1"><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
                     <p class="mb-1"><strong>Equipment:</strong> {{ workout.Equipment }}</p>
                     <p class="mb-1"><strong>Level:</strong> {{ workout.Level }}</p>
-                    <p class="mb-1"><strong>Level:</strong> {{ workout_plan }}</p>
+                    <p>Status: 
+                      {% if workout in progress_data %}
+                          {% if progress_data.get(workout=workout).completed %}
+                              Completed
+                          {% else %}
+                              In Progress
+                          {% endif %}
+                      {% else %}
+                          Not Started
+                      {% endif %}
+                  </p>
 
                   </div>
                   <form method="POST" action="{% url 'workout_session' %}" class="mt-4">
