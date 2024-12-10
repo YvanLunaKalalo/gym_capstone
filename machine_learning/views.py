@@ -195,46 +195,53 @@ def workout_recommendation_view(request):
     return HttpResponse(template.render(context, request))
 
 def workout_session_view(request):
-    # Get the first recommended workout from the session (or default)
+    # Get the recommended workouts from the session
     recommended_workouts = request.session.get('recommended_workouts', [])
+
     if not recommended_workouts:
-        return redirect('recommend')  # Redirect if no recommended workouts available
+        return HttpResponse("No workouts available. Please generate recommendations first.")
 
-    workout_data = recommended_workouts[0]  # Use the first workout
-    workout = get_object_or_404(Workout, Title=workout_data['Title'])
-    
-    # Start a new workout session for the user
-    session = WorkoutSession.objects.create(user=request.user, workout=workout)
-    
+    # Get the current workout index
+    current_index = int(request.session.get('current_workout_index', 0))
+
+    # Get the current workout
+    workout_data = recommended_workouts[current_index]
+    workout_title = workout_data['Title']
+    workout_desc = workout_data['Desc']
+
+    # Calculate time spent on the current workout
+    if request.method == 'POST':
+        start_time = request.session.get(f'start_time_{current_index}', timezone.now())
+        end_time = timezone.now()
+
+        # Calculate the time spent (in minutes)
+        time_spent = (end_time - start_time).total_seconds() / 60  # in minutes
+        request.session[f'time_spent_{current_index}'] = time_spent
+
+        # Update user progress
+        workout_obj = Workout.objects.get(Title=workout_title)
+        progress, created = UserProgress.objects.get_or_create(user=request.user, workout=workout_obj)
+        progress.progress += time_spent  # Or use percentage based on some logic
+        progress.save()
+
+        # Move to the next workout
+        if current_index + 1 < len(recommended_workouts):
+            request.session['current_workout_index'] = current_index + 1
+        else:
+            request.session['current_workout_index'] = 0  # Start over or redirect to progress tracker
+
+        return redirect('workout_session')  # Refresh page to show the next workout
+
+    # Start the timer for the workout
+    if current_index not in request.session:
+        request.session[f'start_time_{current_index}'] = timezone.now()
+
     context = {
-        'workout': workout,
-        'session_id': session.id,  # Session ID for tracking
+        'workout_title': workout_title,
+        'workout_desc': workout_desc,
+        'current_index': current_index,
+        'total_workouts': len(recommended_workouts),
+        'time_spent': request.session.get(f'time_spent_{current_index}', 0),
     }
-    
+
     return render(request, 'workout_session.html', context)
-
-def complete_workout_view(request, session_id):
-    # Get the workout session
-    session = get_object_or_404(WorkoutSession, id=session_id)
-
-    # End the workout session and calculate time spent
-    session.end_time = timezone.now()
-    session.time_spent = session.end_time - session.start_time
-    session.save()
-
-    # Update the UserProgress model
-    UserProgress.objects.get_or_create(
-        user=request.user,
-        workout=session.workout,
-        defaults={'progress': 100}  # Mark as 100% complete for now
-    )
-
-    # Redirect to progress tracker page
-    return redirect('update_progress')
-
-def update_progress_view(request):
-    user_progress = UserProgress.objects.filter(user=request.user)
-    context = {
-        'user_progress': user_progress,
-    }
-    return render(request, 'progress_tracker.html', context)

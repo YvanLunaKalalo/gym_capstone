@@ -6,27 +6,23 @@
 <title>Flex Appeal || Workout Session</title>
 {% endblock %}
 
+{% extends "base.html" %}
+
 {% block content %}
-    <h2>Workout Session: {{ workout.Title }}</h2>
-    <p>{{ workout.Desc }}</p>
-    <p>Duration: <span id="timer">00:00</span></p>
-    
-    <form method="POST" action="{% url 'complete_workout' session_id=session_id %}">
+<div class="container mt-5">
+    <h2>Workout Session: {{ workout_title }}</h2>
+    <p>{{ workout_desc }}</p>
+
+    <h5>Time Spent: {{ time_spent }} minutes</h5>
+
+    <form method="POST">
         {% csrf_token %}
-        <button type="submit">Complete Workout</button>
+        <button type="submit" class="btn btn-primary">Next Workout</button>
     </form>
 
-    <script>
-        let timerElement = document.getElementById('timer');
-        let startTime = Date.now();
-        
-        function updateTimer() {
-            let timeSpent = Math.floor((Date.now() - startTime) / 1000); // seconds
-            let minutes = Math.floor(timeSpent / 60);
-            let seconds = timeSpent % 60;
-            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-
-        setInterval(updateTimer, 1000); // Update every second
-    </script>
+    <div class="mt-4">
+        <p>Workout {{ current_index + 1 }} of {{ total_workouts }}</p>
+    </div>
+</div>
 {% endblock %}
+

@@ -49,17 +49,3 @@ class UserProgress(models.Model):
     class Meta:
         verbose_name = "List of User Progress"  # Singular name in admin
         verbose_name_plural = "User Progress"  # Plural name in admin
-        
-class WorkoutSession(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
-    start_time = models.DateTimeField(auto_now_add=True)
-    end_time = models.DateTimeField(null=True, blank=True)
-    time_spent = models.DurationField(null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.workout.Title}"
-
-    class Meta:
-        verbose_name = "Workout Session"
-        verbose_name_plural = "Workout Sessions"
