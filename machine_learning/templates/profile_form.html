@@ -141,11 +141,20 @@
             </div>
 
             <!-- Submit Button -->
-            <div class="mt-4">
-                <button type="submit" class="btn btn-custom text-light w-100">
-                    Get Recommendations
-                </button>
-            </div>
+            {% if request.user.is_authenticated %}
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-custom text-light w-100">
+                        Get Recommendations
+                    </button>
+                </div>
+            {% else %}
+                <div class="mt-4">
+                    <a href="{% url 'index' %}" class="btn btn-custom text-light w-100">
+                        Please Login first!
+                    </a>
+                </div>
+            {% endif %}
+
         </form>
     </div>
 </div>
