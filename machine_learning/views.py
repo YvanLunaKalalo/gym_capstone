@@ -24,6 +24,13 @@ workout_data['combined_features'] = workout_data['combined_features'].fillna('')
 # Transform workout features using the vectorizer
 workout_features_matrix = vectorizer.transform(workout_data['combined_features'])
 
+# Add a mapping for sets, reps, and days based on workout level
+workout_level_mapping = {
+    'Beginner': {'sets': 3, 'reps': 10, 'days_per_week': 3},
+    'Intermediate': {'sets': 4, 'reps': 12, 'days_per_week': 4},
+    'Advanced': {'sets': 5, 'reps': 15, 'days_per_week': 5},
+}
+
 def bmi_view(request):
     template = loader.get_template('bmi.html')
     context = {}
@@ -139,6 +146,7 @@ def workout_recommendation_view(request):
         recommended_workouts = workout_data.iloc[top_indices]
 
         # Save recommended workouts to the UserProgress model and Workout model
+        recommended_sessions = []
         for _, workout in recommended_workouts.iterrows():
             workout_obj, created = Workout.objects.get_or_create(
                 Title=workout['Title'],
@@ -151,33 +159,25 @@ def workout_recommendation_view(request):
                 }
             )
         
-            # Create WorkoutSession for tracking workout completion
-            WorkoutSession.objects.create(
-                user=request.user,
+            # Create a WorkoutSession for each recommended workout
+            session = WorkoutSession(
+                user_profile=profile,
                 workout=workout_obj,
-                status='Not Started',  # Default status
-                date_started=None,  # Can be updated later when the user starts
-                date_completed=None  # Will be updated when completed
+                estimated_time_minutes=30  # Default estimated time, can be adjusted based on the workout
             )
+            session.save()
+            recommended_sessions.append(session)
         
-            # Create a ProgressTracker entry for tracking user progress with workouts
-            progress_tracker, created = ProgressTracker.objects.get_or_create(
-                user_profile=profile
-            )
-            progress_tracker.update_progress()  # Update the progress based on the user's workout sessions
-        
-        request.session['recommended_workouts'] = recommended_workouts.to_dict(orient='records')  # Store in session
-        
-        # Query WorkoutSessions and ProgressTrackers for the current user
-        workout_sessions = WorkoutSession.objects.filter(user_profile=profile)
-        progress_tracker = ProgressTracker.objects.filter(user_profile=profile).first()
-
+            # Update the ProgressTracker model
+        progress_tracker, created = ProgressTracker.objects.get_or_create(user_profile=profile)
+        progress_tracker.update_progress()  # This updates the progress based on added sessions 
+                
         # Pass recommended workouts to the template
         context = {
             "recommended_workouts" : recommended_workouts[['Title', 'Desc', 'Type', 'BodyPart', 'Equipment', 'Level']].to_dict(orient='records'),
-            "workout_sessions": workout_sessions,
-            "progress_tracker": progress_tracker,
         }
+        context['progress'] = progress_tracker
+
 
         return render(request, 'workout_recommendations.html', context)  # Render the output template
 
