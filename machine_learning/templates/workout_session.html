@@ -8,51 +8,51 @@
 
 {% block content %}
 <div class="container my-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-8 col-md-10">
-      
-      {% if selected_workout %}
-        <div class="card shadow-sm">
-          <div class="card-header bg-primary text-white">
-            <h3 class="card-title">Current Workout: {{ selected_workout.Title }}</h3>
-          </div>
-          <div class="card-body">
-            <p>{{ selected_workout.Desc }}</p>
-            <form method="POST">
-              {% csrf_token %}
-              <button type="submit" name="end_workout" class="btn btn-danger mt-3">End Workout</button>
-            </form>
-          </div>
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+
+            {% if selected_workout %}
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title">Current Workout: {{ selected_workout.Title }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ selected_workout.Desc }}</p>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <button type="submit" name="end_workout" class="btn btn-danger mt-3">End Workout</button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title">Select a Workout to Begin</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="workout_title" class="form-label">Choose Workout:</label>
+                                <select name="workout_title" class="form-select" required>
+                                    {% for workout in recommended_workouts %}
+                                        <option value="{{ workout.Title }}">{{ workout.Title }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" name="start_workout" class="btn btn-success">Start Workout</button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if message %}
+                <div class="alert alert-info mt-4">
+                    {{ message }}
+                </div>
+            {% endif %}
+
         </div>
-      {% else %}
-        <div class="card shadow-sm">
-          <div class="card-header bg-primary text-white">
-            <h3 class="card-title">Select a Workout to Begin</h3>
-          </div>
-          <div class="card-body">
-            <form method="POST">
-              {% csrf_token %}
-              <div class="mb-3">
-                <label for="workout_title" class="form-label">Choose Workout:</label>
-                <select name="workout_title" class="form-select" required>
-                  {% for workout in recommended_workouts %}
-                    <option value="{{ workout.Title }}">{{ workout.Title }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <button type="submit" name="start_workout" class="btn btn-success">Start Workout</button>
-            </form>
-          </div>
-        </div>
-      {% endif %}
-      
-      {% if message %}
-        <div class="alert alert-info mt-4">
-          {{ message }}
-        </div>
-      {% endif %}
-      
     </div>
-  </div>
 </div>
 {% endblock %}

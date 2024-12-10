@@ -7,14 +7,41 @@
 {% endblock %}
 
 {% block content %}
-  <h2>Your Progress Tracker</h2>
-  
-  <ul>
-    {% for progress in progress_list %}
-      <li>{{ progress.workout.Title }} - Progress: {{ progress.progress }}%</li>
-    {% endfor %}
-  </ul>
-  
-  <p>Total Progress: {{ total_progress }}%</p>
-  
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title">Your Workout Progress</h3>
+                </div>
+                <div class="card-body">
+                    <h5>Total Progress: {{ total_progress }}%</h5>
+
+                    {% if progress_list %}
+                        <table class="table table-striped mt-3">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Workout</th>
+                                    <th scope="col">Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for progress in progress_list %}
+                                    <tr>
+                                        <td>{{ progress.workout.Title }}</td>
+                                        <td>{{ progress.progress }}%</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No workouts completed yet. Start a workout to track progress!</p>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 {% endblock %}
