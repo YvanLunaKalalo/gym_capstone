@@ -7,41 +7,30 @@
 {% endblock %}
 
 {% block content %}
-<div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8 col-md-10">
+<h1>Progress Tracker</h1>
 
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="card-title">Your Workout Progress</h3>
-                </div>
-                <div class="card-body">
-                    <h5>Total Progress: {{ total_progress }}%</h5>
+<h2>Your Workout Progress:</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Workout Title</th>
+            <th>Time Spent (minutes)</th>
+            <th>Progress</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for progress in user_progress %}
+        <tr>
+            <td>{{ progress.workout.Title }}</td>
+            <td>{{ progress.time_spent }}</td>
+            <td>{{ progress.progress }}%</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">No progress data yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
-                    {% if progress_list %}
-                        <table class="table table-striped mt-3">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Workout</th>
-                                    <th scope="col">Progress</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for progress in progress_list %}
-                                    <tr>
-                                        <td>{{ progress.workout.Title }}</td>
-                                        <td>{{ progress.progress }}%</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    {% else %}
-                        <p>No workouts completed yet. Start a workout to track progress!</p>
-                    {% endif %}
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
 {% endblock %}

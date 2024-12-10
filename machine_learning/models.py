@@ -40,6 +40,7 @@ class UserProgress(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
     progress = models.PositiveIntegerField()  # Percentage or count of completed workouts
+    time_spent = models.FloatField(default=0)  # Time spent in minutes
     date = models.DateField(auto_now_add=True)
     progress_date = models.DateField(auto_now=True)  # Automatically update the date whenever the progress is updated
 
