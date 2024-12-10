@@ -123,18 +123,6 @@ def workout_recommendation_view(request):
             'Fitness Type_Muscular Fitness' : [1 if Fitness_Type == 'Muscular Fitness' else 0],
         }
         
-        # Inside the workout_recommendation_view function, adjust the workout_plan based on Fitness_Goal
-        if Fitness_Goal == 'Weight Loss':
-            workout_plan = workout_level_mapping.get(Level, {'sets': 3, 'reps': 10, 'days_per_week': 3})
-            workout_plan['days_per_week'] = 5  # Typically higher frequency for weight loss (e.g., 5 days per week)
-        elif Fitness_Goal == 'Muscular Fitness':
-            workout_plan = workout_level_mapping.get(Level, {'sets': 4, 'reps': 12, 'days_per_week': 4})
-            workout_plan['days_per_week'] = 4  # Lower frequency for muscular fitness (e.g., 4 days per week)
-        else:
-            workout_plan = workout_level_mapping.get(Level, {'sets': 3, 'reps': 10, 'days_per_week': 3})
-            
-        context['workout_plan'] = workout_plan
-        
         # Convert profile data to DataFrame
         # profile_df = pd.DataFrame(data, columns=columns)
         
@@ -191,7 +179,6 @@ def workout_recommendation_view(request):
         # Pass recommended workouts to the template
         context = {
             "recommended_workouts" : recommended_workouts[['Title', 'Desc', 'Type', 'BodyPart', 'Equipment', 'Level']].to_dict(orient='records'),
-            "workout_plan": workout_plan,  # Include workout plan details in the context
         }
 
         return render(request, 'workout_recommendations.html', context)  # Render the output template
