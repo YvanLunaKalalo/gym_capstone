@@ -1,78 +1,126 @@
-<div class="container my-5">
-    <!-- Dashboard Header -->
-    <div class="row mb-4">
-        <div class="col-12 text-center">
-            <h1 class="display-4">User Dashboard</h1>
-            <p class="text-muted">Track your workouts and progress</p>
-        </div>
+{% extends 'master.html' %}
+
+{% load static %}
+
+{% block title %}
+<title>Flex Appeal || Dashboard</title>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Dashboard</h1>
+
+    <!-- Display Workouts -->
+    <div class="mb-4">
+        <h3>Workouts</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Type</th>
+                    <th>Body Part</th>
+                    <th>Level</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for workout in workouts %}
+                <tr>
+                    <td>{{ workout.Title }}</td>
+                    <td>{{ workout.Desc }}</td>
+                    <td>{{ workout.Type }}</td>
+                    <td>{{ workout.BodyPart }}</td>
+                    <td>{{ workout.Level }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
-    <!-- User Profile Information -->
-    <div class="row mb-4">
-        <div class="col-lg-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Profile Information</h5>
-                    <p><strong>Name:</strong> {{ user_profile.user.username }}</p>
-                    <p><strong>Age:</strong> {{ user_profile.Age }} years</p>
-                    <p><strong>Weight:</strong> {{ user_profile.Weight }} kg</p>
-                    <p><strong>Height:</strong> {{ user_profile.Height }} cm</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Workout Sessions -->
-        <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Workout Sessions</h5>
-                    {% if workout_sessions %}
-                        <ul class="list-group list-group-flush">
-                        {% for session in workout_sessions %}
-                            <li class="list-group-item">
-                                <strong>{{ session.workout.Title }}</strong> 
-                                <span class="text-muted">- {{ session.date|date:"Y-m-d" }} - Duration: {{ session.duration }} mins</span>
-                            </li>
-                        {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="text-muted">No workout sessions available.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+    <!-- Display User Profiles -->
+    <div class="mb-4">
+        <h3>User Profiles</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Sex</th>
+                    <th>Age</th>
+                    <th>Height</th>
+                    <th>Weight</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for profile in user_profiles %}
+                <tr>
+                    <td>{{ profile.user.username }}</td>
+                    <td>{{ profile.Sex }}</td>
+                    <td>{{ profile.Age }}</td>
+                    <td>{{ profile.Height }}</td>
+                    <td>{{ profile.Weight }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
-    <!-- Progress Tracker -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Progress Tracker</h5>
-                    {% if progress_trackers %}
-                        <table class="table table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th scope="col">Date</th>
-                                    <th scope="col">Weight Lifted (kg)</th>
-                                    <th scope="col">Reps</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            {% for progress in progress_trackers %}
-                                <tr>
-                                    <td>{{ progress.date|date:"Y-m-d" }}</td>
-                                    <td>{{ progress.weight_lifted }}</td>
-                                    <td>{{ progress.reps }}</td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    {% else %}
-                        <p class="text-muted">No progress tracking data available.</p>
-                    {% endif %}
-                </div>
-            </div>
+    <!-- Display Workout Sessions -->
+    <div class="mb-4">
+        <h3>Workout Sessions</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Workout</th>
+                    <th>Session Date</th>
+                    <th>Estimated Time</th>
+                    <th>Actual Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in workout_sessions %}
+                <tr>
+                    <td>{{ session.user_profile.user.username }}</td>
+                    <td>{{ session.workout.Title }}</td>
+                    <td>{{ session.session_date }}</td>
+                    <td>{{ session.estimated_time_minutes }} minutes</td>
+                    <td>{{ session.actual_time_minutes }} minutes</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Display Progress Trackers -->
+    <div class="mb-4">
+        <h3>Progress Trackers</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Total Workouts</th>
+                    <th>Total Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tracker in progress_trackers %}
+                <tr>
+                    <td>{{ tracker.user_profile.user.username }}</td>
+                    <td>{{ tracker.total_workouts }}</td>
+                    <td>{{ tracker.total_time_minutes }} minutes</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
+        <!-- Back to Home Button -->
+        <div class="mt-4 text-center">
+            <a href="{% url 'index' %}" class="btn btn-primary w-100" style="background-color: #ed563b; border: none;">
+                Back to Home
+            </a>
         </div>
     </div>
 </div>
+{% endblock %}
