@@ -5,7 +5,7 @@ from joblib import load
 import pandas as pd
 from django.conf import settings
 from sklearn.metrics.pairwise import cosine_similarity
-from .models import Workout, UserProfile, UserProgress, WorkoutSession
+from .models import Workout, UserProfile, UserProgress
 import time
 from django.utils import timezone
 
