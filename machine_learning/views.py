@@ -185,23 +185,38 @@ def workout_recommendation_view(request):
 
     return HttpResponse(template.render(context, request))
 
-def workout_session_list_view(request):
-    # Fetch all Workout Sessions for the logged-in user
-    workout_sessions = WorkoutSession.objects.filter(user=request.user).order_by('-date')
-    context = {'workout_sessions': workout_sessions}
-    return render(request, 'workout_session_list.html', context)
+def log_workout_session_view(request):
+    user_profile = get_object_or_404(UserProfile, user=request.user)
+    workouts = Workout.objects.all()  # Fetch available workouts
 
-def progress_tracker_view(request):
-    # Fetch the progress tracker for the logged-in user
-    progress_tracker = ProgressTracker.objects.filter(user=request.user).order_by('-date')
-    
-    # Create data for chart.js (progress counts over time)
-    workout_titles = [progress.workout.Title for progress in progress_tracker]
-    progress_counts = [progress.progress for progress in progress_tracker]
-    
+    if request.method == 'POST':
+        workout_id = request.POST.get('workout_id')
+        estimated_time = request.POST.get('estimated_time')
+        actual_time = request.POST.get('actual_time')
+        
+        workout = get_object_or_404(Workout, id=workout_id)
+        session = WorkoutSession.objects.create(
+            user_profile=user_profile,
+            workout=workout,
+            estimated_time_minutes=estimated_time,
+            actual_time_minutes=actual_time,
+            session_date=timezone.now()
+        )
+        
+        # Update progress tracker
+        progress_tracker, created = ProgressTracker.objects.get_or_create(user_profile=user_profile)
+        progress_tracker.update_progress()
+
+        return redirect('view_progress_tracker')  # Redirect to the progress tracker view
+
+    return render(request, 'log_workout_session.html', {'workouts': workouts})
+
+def view_progress_tracker_view(request):
+    user_profile = get_object_or_404(UserProfile, user=request.user)
+    progress_tracker, created = ProgressTracker.objects.get_or_create(user_profile=user_profile)
+
     context = {
-        'progress_tracker': progress_tracker,
-        'workout_titles': workout_titles,
-        'progress_counts': progress_counts
+        'progress_tracker': progress_tracker
     }
+
     return render(request, 'progress_tracker.html', context)
