@@ -10,19 +10,23 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2>Workout Session: {{ workout_title }}</h2>
-    <p>{{ workout_desc }}</p>
+    <h2>Workout Session: {{ workout.Title }}</h2>
+    <p><strong>Description:</strong> {{ workout.Desc }}</p>
+    <p><strong>Type:</strong> {{ workout.Type }}</p>
+    <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
+    <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
+    <p><strong>Level:</strong> {{ workout.Level }}</p>
+    
+    <!-- Display the time spent on the workout -->
+    <p><strong>Time Spent:</strong> {{ start_time|date:"H:i:s" }} (Start Time)</p>
 
-    <h5>Time Spent: {{ time_spent }} minutes</h5>
-
+    <!-- Proceed to the next workout button -->
     <form method="POST">
         {% csrf_token %}
         <button type="submit" class="btn btn-primary">Next Workout</button>
     </form>
 
-    <div class="mt-4">
-        <p>Workout {{ current_index + 1 }} of {{ total_workouts }}</p>
-    </div>
+    <a href="{% url 'progress' %}" class="btn btn-secondary mt-3">Go to Progress Tracker</a>
 </div>
 {% endblock %}
 
