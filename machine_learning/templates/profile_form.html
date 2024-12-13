@@ -123,18 +123,6 @@
 </style>
 
 <div class="main-banner" id="top">
-    <!-- Video Background -->
-    <video autoplay muted loop id="bg-video">
-        <source src="{% static 'path_to_your_video.mp4' %}" type="video/mp4">
-    </video>
-
-    <div class="video-overlay"></div>
-
-    <div class="caption">
-        <h6>Your Custom Profile</h6>
-        <h4>Complete <em>Profile</em></h4>
-    </div>
-
     <div class="container mt-5">
         <form method="POST" class="form-container">
             {% csrf_token %}
