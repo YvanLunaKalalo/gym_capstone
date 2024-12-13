@@ -66,7 +66,7 @@
                             <!-- Display Progress if available -->
                             {% for progress in user_progress %}
                                 {% if progress.workout == workout %}
-                                    <p><strong>Progress:</strong> {{ progress.progress }}%</p>
+                                    <p><strong>Progress:</strong> {{ progress.progress_date }}%</p>
                                 {% endif %}
                             {% endfor %}
                         </div>
