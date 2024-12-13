@@ -63,6 +63,12 @@
                             <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
                             <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
                             <p><strong>Level:</strong> {{ workout.Level }}</p>
+                            <!-- Display Progress if available -->
+                            {% for progress in user_progress %}
+                                {% if progress.workout == workout %}
+                                    <p><strong>Progress:</strong> {{ progress.progress }}%</p>
+                                {% endif %}
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
