@@ -88,6 +88,11 @@ def login_view(request):
             user = authenticate(email=email, password=password)
 
             if user:
+                if not user.is_active:  # Check if the user is active
+                    context['login_form'] = form
+                    context['error_message'] = "Your account is not activated. Please check your email to activate your account."
+                    return HttpResponse(template.render(context, request))
+                
 				# Prevent superusers from logging in through user login
                 if user.is_superuser:
                     context['login_form'] = form
