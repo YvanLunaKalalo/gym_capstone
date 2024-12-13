@@ -204,6 +204,9 @@ JAZZMIN_SETTINGS = {
     "welcome_sign": "Welcome to Admin of Flex Appeal",
     "copyright": "Copyright © 2024 Flex Appeal - Designed by Yvan Kalalo, Lyka Mae P. Lalog, Edward Ora-a, John Mark Manalo. Distributed by Yvan Kalalo, Lyka Mae P. Lalog, Edward Ora-a, and John Mark Manalo.",
     "show_ui_builder": True,
+    "topmenu_links": [
+        {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
+    ],
 }
 
 JAZZMIN_UI_TWEAKS = {
