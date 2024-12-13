@@ -56,6 +56,10 @@ def bmi_view(request):
 # Define the view for workout recommendations
 def workout_recommendation_view(request):
     template = loader.get_template("profile_form.html")  # Your form template
+    
+    if not request.user.is_authenticated:
+        return redirect("login")
+
     context = {}
 
     if request.method == 'POST':
@@ -197,6 +201,10 @@ def calculate_progress(user):
     return min(progress, 100)
 
 def update_progress_view(request, workout_title):
+    
+    if not request.user.is_authenticated:
+        return redirect("login")
+
     # Get the workout by its Title
     workout = get_object_or_404(Workout, Title=workout_title)
     

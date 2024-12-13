@@ -25,6 +25,10 @@ def index_view(request):
     return HttpResponse(template.render(context, request))
 
 def dashboard_view(request):
+    
+    if not request.user.is_authenticated:
+        return redirect("login")
+
     # Get the user profile for the logged-in user
     user_profile = UserProfile.objects.filter(user=request.user).first()
 
