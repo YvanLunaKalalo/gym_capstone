@@ -194,8 +194,8 @@ def calculate_progress(user):
     # You can also factor in fitness goals, difficulty levels, etc.
     # For example, if the user’s goal is "Weight Loss" and they've completed
     # certain cardio workouts, you could increase their progress more.
-    if user_profile.Fitness_Goal == "Weight Loss":
-        progress += 10  # Boost progress for specific goals (this is just an example)
+    # if user_profile.Fitness_Goal == "Weight Loss":
+    #     progress += 10  # Boost progress for specific goals (this is just an example)
 
     # Ensure progress doesn't exceed 100%
     return min(progress, 100)
