@@ -1,30 +1,15 @@
 {% extends 'master.html' %}
-
-{% load static %}
-
-{% block title %}
-<title>Flex Appeal || Progress Tracker</title>
-{% endblock %}
-
 {% block content %}
-<div class="container pt-5">
-  <h2 class="text-center mb-5 font-weight-bold text-uppercase">Your Workout Progress</h2>
-  <div class="row justify-content-center">
-    <div class="col-md-8">
-      <div class="progress">
-        <div class="progress-bar" role="progressbar" style="width: {{ progress }}%;" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
-      </div>
-      <p class="text-center mt-3"><strong>{{ progress }}% Completed</strong></p>
-    </div>
-  </div>
+<div class="container mt-5">
+    <h2>Progress Tracker</h2>
+    <p>Your progress: {{ progress_percentage }}%</p>
 
-  <h3 class="mt-4">Completed Workouts:</h3>
-  <ul>
-    {% for workout in completed_workouts %}
-    <li>{{ workout.Title }}</li>
-    {% empty %}
-    <li>No workouts completed yet.</li>
-    {% endfor %}
-  </ul>
+    <ul>
+        {% for workout in completed_workouts %}
+        <li>{{ workout.workout.title }}</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'recommend' %}" class="btn btn-custom">Start New Session</a>
 </div>
 {% endblock %}

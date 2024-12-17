@@ -1,0 +1,8 @@
+{% extends 'master.html' %}
+{% block content %}
+<div class="container mt-5 text-center">
+    <h2>{{ completed_message }}</h2>
+    <p>Your progress: {{ progress_percentage }}%</p>
+    <a href="{% url 'progress_tracker' %}" class="btn btn-custom">View Progress Tracker</a>
+</div>
+{% endblock %}

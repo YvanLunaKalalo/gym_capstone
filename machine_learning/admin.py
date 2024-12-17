@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Workout, UserProfile, UserProgress
+from .models import Workout, UserProfile, UserWorkoutSession, UserProgress
 from django.db.models import Count
 from django.shortcuts import render
 
@@ -43,9 +43,27 @@ class UserProfileAdmin(admin.ModelAdmin):
         }
         return super().changelist_view(request, extra_context=context)
 
+@admin.register(UserWorkoutSession)
+class UserWorkoutSessionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'current_workout', 'progress', 'completed')
+    search_fields = ('user__username', 'current_workout__Title')
+    list_filter = ('completed',)  # Filter based on completed status
+
+    def changelist_view(self, request, extra_context=None):
+        # Data for pie chart specific to workout session progress
+        session_data = UserWorkoutSession.objects.values('current_workout__Title').annotate(total_sessions=Count('id'))
+        workout_titles = [data['current_workout__Title'] for data in session_data]
+        session_counts = [data['total_sessions'] for data in session_data]
+
+        extra_context = extra_context or {}
+        extra_context['workout_titles'] = workout_titles
+        extra_context['session_counts'] = session_counts
+
+        return super().changelist_view(request, extra_context=extra_context)
+
 @admin.register(UserProgress)
 class UserProgressAdmin(admin.ModelAdmin):
-    list_display = ('user', 'workout', 'progress', 'date', 'progress_date')
+    list_display = ('user', 'workout', 'progress', 'date', 'progress_date', 'completed')
     search_fields = ('user__username', 'workout__Title')
     
     change_list_template = "admin/userprogress_change_list.html"  # Custom template for change list

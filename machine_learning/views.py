@@ -5,7 +5,7 @@ from joblib import load
 import pandas as pd
 from django.conf import settings
 from sklearn.metrics.pairwise import cosine_similarity
-from .models import Workout, UserProfile, UserProgress
+from .models import Workout, UserProfile, UserWorkoutSession, UserProgress
 
 # Load the pre-trained model
 model1 = load('./Saved_Models/model1.joblib') # BMI
@@ -141,21 +141,21 @@ def workout_recommendation_view(request):
         recommended_workouts = workout_data.iloc[top_indices]
 
         # Save recommended workouts to the UserProgress model
-        # for _, workout in recommended_workouts.iterrows():
-        #     UserProgress.objects.get_or_create(
-        #         user=request.user,
-        #         workout=Workout.objects.get_or_create(
-        #             Title=workout['Title'],
-        #             defaults={
-        #                 'Desc': workout['Desc'],
-        #                 'Type': workout['Type'],
-        #                 'BodyPart': workout['BodyPart'],
-        #                 'Equipment': workout.get('Equipment', 'None'),
-        #                 'Level': workout.get('Level', 'None')
-        #             }
-        #         )[0],
-        #         defaults={'progress': 0}  # Initialize progress
-        #     )
+        for _, workout in recommended_workouts.iterrows():
+            UserProgress.objects.get_or_create(
+                user=request.user,
+                workout=Workout.objects.get_or_create(
+                    Title=workout['Title'],
+                    defaults={
+                        'Desc': workout['Desc'],
+                        'Type': workout['Type'],
+                        'BodyPart': workout['BodyPart'],
+                        'Equipment': workout.get('Equipment', 'None'),
+                        'Level': workout.get('Level', 'None')
+                    }
+                )[0],
+                defaults={'progress': 0}  # Initialize progress
+            )
             
         # Calculate dynamic progress
         # progress = calculate_progress(request.user)  # Dynamically calculate progress for the user
@@ -173,44 +173,80 @@ def workout_recommendation_view(request):
 
     return HttpResponse(template.render(context, request))
 
-def workout_session(request, workout_title):
-    workout = Workout.objects.get(Title=workout_title)  # Get the workout by title
-    
-    # Get or create the user's progress record
-    user_progress, created = UserProgress.objects.get_or_create(user=request.user)
-    
-    # Handle the 'done' action
-    if request.method == 'POST':
-        # Mark the workout as completed
-        user_progress.completed_workouts.add(workout)
-        
-        # Update the user's progress
-        total_workouts = Workout.objects.count()
-        completed_count = user_progress.completed_workouts.count()
-        user_progress.progress = (completed_count / total_workouts) * 100
-        user_progress.save()
-        
-        # Redirect to the next workout or show "completed" if it's the last one
-        next_workout = Workout.objects.exclude(Title__in=user_progress.completed_workouts.values('Title')).first()
-        
+def start_workout_session_view(request):
+    # Initialize a workout session for the user
+    workouts = Workout.objects.all()  # Fetch all recommended workouts
+    if not workouts.exists():
+        return redirect('no_workouts')  # Handle the case where there are no workouts
+
+    # Start a session with the first workout
+    first_workout = workouts.first()
+    session, created = UserWorkoutSession.objects.get_or_create(
+        user=request.user,
+        defaults={'current_workout': first_workout}
+    )
+
+    return redirect('workout_session')
+
+def workout_session_view(request):
+    session = get_object_or_404(UserWorkoutSession, user=request.user)
+    current_workout = session.current_workout
+    if not current_workout:
+        return redirect('no_workouts')  # Handle if there is no current workout
+
+    context = {
+        'workout': current_workout
+    }
+
+    return render(request, 'workout_session.html', context)
+
+def next_workout_view(request):
+    session = get_object_or_404(UserWorkoutSession, user=request.user)
+    current_workout = session.current_workout
+
+    if current_workout:
+        # Mark the current workout as completed
+        UserProgress.objects.update_or_create(
+            user=request.user,
+            workout=current_workout,
+            defaults={'completed': True}
+        )
+
+        # Find the next workout in the sequence
+        next_workout = Workout.objects.filter(id__gt=current_workout.id).first()
         if next_workout:
-            return redirect('workout_session', workout_title=next_workout.Title)
-        else:
-            return redirect('completed')
-    
-    return render(request, 'workout_session.html', {'workout': workout})
+            session.current_workout = next_workout
+            session.save()
+            return redirect('workout_session')
 
-# Progress tracker view
-def progress_tracker(request):
-    user_progress = UserProgress.objects.get(user=request.user)
-    completed_workouts = user_progress.completed_workouts.all()
-    progress = user_progress.progress
+        # If no more workouts, mark the session as completed
+        session.completed = True
+        session.save()
+        return redirect('workout_complete')
 
-    return render(request, 'progress_tracker.html', {
-        'completed_workouts': completed_workouts,
-        'progress': progress
-    })
+    return redirect('no_workouts')
 
-# Completed workouts view
-def completed(request):
-    return render(request, 'completed.html')
+def workout_complete_view(request):
+    session = get_object_or_404(UserWorkoutSession, user=request.user)
+    progress = UserProgress.objects.filter(user=request.user, completed=True).count()
+    total_workouts = Workout.objects.all().count()
+
+    progress_percentage = int((progress / total_workouts) * 100) if total_workouts > 0 else 0
+
+    context = {
+        'progress_percentage': progress_percentage,
+        'completed_message': 'Congratulations! You have completed all the workouts!'
+    }
+
+    return render(request, 'workout_complete.html', context)
+
+def progress_tracker_view(request):
+    progress_list = UserProgress.objects.filter(user=request.user, completed=True)
+    progress_percentage = progress_list.count() * 100 / Workout.objects.count()
+
+    context = {
+        'progress_percentage': progress_percentage,
+        'completed_workouts': progress_list
+    }
+
+    return render(request, 'progress_tracker.html', context)

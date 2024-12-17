@@ -1,49 +1,12 @@
 {% extends 'master.html' %}
-
-{% load static %}
-
-{% block title %}
-<title>Flex Appeal || Workout Session</title>
-{% endblock %}
-
 {% block content %}
-<style type="text/css">
-  .btn-custom {
-    background-color: #ed563b;
-    border: none;
-    padding: 15px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: background-color 0.3s ease;
-    color: white;
-  }
+<div class="container mt-5">
+    <h2>{{ workout.title }}</h2>
+    <p>{{ workout.desc }}</p>
 
-  .btn-custom:hover {
-    background-color: white;
-    color: #ed563b;
-  }
-</style>
-
-<div class="main-banner pt-5" id="top">
-  <div class="container pt-5">
-    <h2 class="text-center mb-5 font-weight-bold text-uppercase" style="letter-spacing: 1.5px;">{{ workout.Title }} Workout</h2>
-
-    <div class="card h-100 shadow-lg border-0 bg-dark text-white rounded-lg overflow-hidden">
-      <div class="card-body">
-        <h5 class="card-title">{{ workout.Title }}</h5>
-        <p class="card-text">{{ workout.Desc }}</p>
-        <form method="POST" action="{% url 'workout_session' workout.Title %}">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-custom btn-lg w-100 text-uppercase font-weight-bold">Mark as Done</button>
-        </form>
-      </div>
-    </div>
-
-    {% if forloop.last %}
-    <div class="mt-4">
-      <a href="{% url 'completed' %}" class="btn btn-success w-100 text-uppercase font-weight-bold">Completed</a>
-    </div>
-    {% endif %}
-  </div>
+    <form method="POST" action="{% url 'next_workout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-custom">Done</button>
+    </form>
 </div>
 {% endblock %}

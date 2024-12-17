@@ -36,16 +36,25 @@ class UserProfile(models.Model):
         verbose_name = "List of User Profiles"  # Singular name in admin
         verbose_name_plural = "User Profiles"  # Plural name in admin
     
+class UserWorkoutSession(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    current_workout = models.ForeignKey(Workout, on_delete=models.SET_NULL, null=True, blank=True)
+    completed = models.BooleanField(default=False)
+    progress = models.PositiveIntegerField(default=0)  # Percentage completed
+
+    def __str__(self):
+        return f'{self.user.username} - Progress: {self.progress}%'    
+    
 class UserProgress(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
     progress = models.PositiveIntegerField()  # Percentage or count of completed workouts
     date = models.DateField(auto_now_add=True)
-    completed_workouts = models.ManyToManyField(Workout, related_name='completed_by', blank=True)  # Set a related_name
     progress_date = models.DateField(auto_now=True)  # Automatically update the date whenever the progress is updated
+    completed = models.BooleanField(default=False)
     
     def __str__(self):
-        return f"{self.user.username} - {self.workout.Title} - {self.progress}%"
+        return f"{self.user.username} - {self.workout.Title} - Completed: {self.progress}"
     
     class Meta:
         verbose_name = "List of User Progress"  # Singular name in admin
