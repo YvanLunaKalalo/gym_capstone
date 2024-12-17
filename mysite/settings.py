@@ -27,6 +27,8 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     'web-production-650c.up.railway.app',
+    'localhost',
+    '127.0.0.1',
 ]
 
 CSRF_COOKIE_SECURE = True  # Use only in production with HTTPS
