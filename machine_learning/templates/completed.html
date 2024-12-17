@@ -1,0 +1,13 @@
+{% extends 'master.html' %}
+
+{% block title %}
+<title>Flex Appeal || Completed</title>
+{% endblock %}
+
+{% block content %}
+<div class="container pt-5">
+  <h2 class="text-center mb-5 font-weight-bold text-uppercase">Congratulations! You have completed all workouts!</h2>
+  <p class="text-center">Keep up the great work! Stay active and maintain your progress.</p>
+  <a href="{% url 'progress_tracker' %}" class="btn btn-success btn-lg w-100 text-uppercase font-weight-bold">Go to Progress Tracker</a>
+</div>
+{% endblock %}

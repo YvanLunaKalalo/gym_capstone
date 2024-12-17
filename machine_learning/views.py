@@ -158,12 +158,12 @@ def workout_recommendation_view(request):
             )
             
         # Calculate dynamic progress
-        progress = calculate_progress(request.user)  # Dynamically calculate progress for the user
+        # progress = calculate_progress(request.user)  # Dynamically calculate progress for the user
 
         # Pass recommended workouts to the template
         context = {
             "recommended_workouts" : recommended_workouts[['Title', 'Desc', 'Type', 'BodyPart', 'Equipment', 'Level']].to_dict(orient='records'),
-            "progress": progress,  # Pass progress to the template
+            # "progress": progress,  # Pass progress to the template
 
         }
         
@@ -173,67 +173,44 @@ def workout_recommendation_view(request):
 
     return HttpResponse(template.render(context, request))
 
-def calculate_progress(user):
-    """
-    A helper function to dynamically calculate the user's progress
-    based on workout completion, fitness goal, and other factors.
-    """
-    # Get the user profile
-    user_profile = UserProfile.objects.get(user=user)
-
-    # Example calculation: Assume progress is based on the percentage of workouts completed
-    total_workouts = Workout.objects.count()  # Total available workouts
-    completed_workouts = UserProgress.objects.filter(user=user, progress=100).count()  # Workouts completed by user
-
-    if total_workouts == 0:
-        return 0
-
-    # Example: Calculate progress based on the ratio of completed workouts
-    progress = (completed_workouts / total_workouts) * 100
-
-    # You can also factor in fitness goals, difficulty levels, etc.
-    # For example, if the user’s goal is "Weight Loss" and they've completed
-    # certain cardio workouts, you could increase their progress more.
-    # if user_profile.Fitness_Goal == "Weight Loss":
-    #     progress += 10  # Boost progress for specific goals (this is just an example)
-
-    # Ensure progress doesn't exceed 100%
-    return min(progress, 100)
-
-def update_progress_view(request, workout_title):
+def workout_session(request, workout_title):
+    workout = Workout.objects.get(Title=workout_title)  # Get the workout by title
     
-    if not request.user.is_authenticated:
-        return redirect("login")
-
-    # Get the workout by its Title
-    workout = get_object_or_404(Workout, Title=workout_title)
+    # Get or create the user's progress record
+    user_progress, created = UserProgress.objects.get_or_create(user=request.user)
     
-    # Get the user profile
-    user_profile = get_object_or_404(UserProfile, user=request.user)
-
-    # Fetch or initialize the user's progress for this workout
-    progress_entry, created = UserProgress.objects.get_or_create(
-        user=request.user, workout=workout,
-        defaults={'progress': 0},  # Default progress when starting
-    )
-
+    # Handle the 'done' action
     if request.method == 'POST':
-        # Increment the user's progress
-        increment = int(request.POST.get('increment', 0))  # Get the increment value from the form
-        progress_entry.progress = min(progress_entry.progress + increment, 100)  # Ensure it doesn't exceed 100%
-        progress_entry.save()
-
-    # Logic to analyze and update progress based on UserProfile and Workout
-    # For instance, you could adjust progress based on user fitness level, workout difficulty, etc.
+        # Mark the workout as completed
+        user_progress.completed_workouts.add(workout)
+        
+        # Update the user's progress
+        total_workouts = Workout.objects.count()
+        completed_count = user_progress.completed_workouts.count()
+        user_progress.progress = (completed_count / total_workouts) * 100
+        user_progress.save()
+        
+        # Redirect to the next workout or show "completed" if it's the last one
+        next_workout = Workout.objects.exclude(Title__in=user_progress.completed_workouts.values('Title')).first()
+        
+        if next_workout:
+            return redirect('workout_session', workout_title=next_workout.Title)
+        else:
+            return redirect('completed')
     
-    progress_percentage = progress_entry.progress
+    return render(request, 'workout_session.html', {'workout': workout})
 
-    # Pass the data to the template
-    context = {
-        'workout': workout,
-        'progress': progress_percentage,
-        'user_profile': user_profile,
-        'progress_date': progress_entry.progress_date,
-    }
+# Progress tracker view
+def progress_tracker(request):
+    user_progress = UserProgress.objects.get(user=request.user)
+    completed_workouts = user_progress.completed_workouts.all()
+    progress = user_progress.progress
 
-    return render(request, 'progress_tracker.html', context)
+    return render(request, 'progress_tracker.html', {
+        'completed_workouts': completed_workouts,
+        'progress': progress
+    })
+
+# Completed workouts view
+def completed(request):
+    return render(request, 'completed.html')
