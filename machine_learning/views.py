@@ -200,7 +200,7 @@ def workout_session_view(request):
     return render(request, 'workout_session.html', context)
 
 def next_workout_view(request):
-    session = get_object_or_404(UserProgress, user=request.user)
+    session = get_object_or_404(UserWorkoutSession, user=request.user)
     current_workout = session.current_workout
 
     if current_workout:
@@ -226,7 +226,7 @@ def next_workout_view(request):
     return redirect('no_workouts')
 
 def workout_complete_view(request):
-    session = get_object_or_404(UserProgress, user=request.user)
+    session = get_object_or_404(UserWorkoutSession, user=request.user)
     progress = UserProgress.objects.filter(user=request.user, completed=True).count()
     total_workouts = Workout.objects.all().count()
 
