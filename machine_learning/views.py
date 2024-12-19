@@ -173,36 +173,23 @@ def workout_recommendation_view(request):
 
     return HttpResponse(template.render(context, request))
 
-def start_workout_session_view(request):
-    recommended_workouts = get_recommended_workouts_for_user(request.user)
-    
-    if not recommended_workouts.exists():
-        return redirect('no_workouts')  # Handle the case where there are no recommended workouts
-
-    # Start a session with the first recommended workout
-    first_workout = recommended_workouts.first()
-    session, created = UserWorkoutSession.objects.get_or_create(
-        user=request.user,
-        defaults={'current_workout': first_workout}
-    )
-
-    return redirect('workout_session')
-
-# A function to get recommended workouts based on user's profile or preferences
-def get_recommended_workouts_for_user(user):
-    # Example logic for getting recommended workouts based on user's profile
-    # You may want to use a recommendation algorithm here
-    return Workout.objects.filter(recommended_for=user.profile.fitness_goal)
-
 def workout_session_view(request):
     session = get_object_or_404(UserWorkoutSession, user=request.user)
     current_workout = session.current_workout
+    
     if not current_workout:
-        return redirect('no_workouts')  # Handle if there is no current workout
+        # Get the next workout the user hasn't completed
+        progress_workouts = UserProgress.objects.filter(user=request.user, completed=False)
+        if progress_workouts.exists():
+            next_workout = progress_workouts.first().workout
+            session.current_workout = next_workout
+            session.save()
+        else:
+            return redirect('workout_complete')  # No more workouts
 
     context = {
         'workout': {
-            'title': current_workout.Title,  # Use correct field names from your Workout model
+            'title': current_workout.Title,
             'desc': current_workout.Desc,
             'type': current_workout.Type,
             'body_part': current_workout.BodyPart,
@@ -225,10 +212,10 @@ def next_workout_view(request):
             defaults={'completed': True}
         )
 
-        # Find the next workout in the sequence
-        next_workout = Workout.objects.filter(id__gt=current_workout.id).first()
+        # Find the next uncompleted workout
+        next_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
         if next_workout:
-            session.current_workout = next_workout
+            session.current_workout = next_workout.workout
             session.save()
             return redirect('workout_session')
 

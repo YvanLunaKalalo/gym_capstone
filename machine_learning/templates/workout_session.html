@@ -4,18 +4,23 @@
 
 {% block content %}
 <div class="container mt-5">
-    <!-- Display workout details -->
-    <h2>{{ workout.Title }}</h2>
-    <p>{{ workout.Desc }}</p>
-    <p><strong>Type:</strong> {{ workout.Type }}</p>
-    <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
-    <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
-    <p><strong>Level:</strong> {{ workout.Level }}</p>
+    <h2>Workout Session</h2>
 
-    <!-- Button to mark workout as done and move to the next workout -->
-    <form method="POST" action="{% url 'next_workout' %}">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-custom">Done</button>
-    </form>
+    {% if workout %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h3 class="card-title">{{ workout.title }}</h3>
+                <p class="card-text"><strong>Description:</strong> {{ workout.desc }}</p>
+                <p class="card-text"><strong>Type:</strong> {{ workout.type }}</p>
+                <p class="card-text"><strong>Body Part:</strong> {{ workout.body_part }}</p>
+                <p class="card-text"><strong>Equipment:</strong> {{ workout.equipment }}</p>
+                <p class="card-text"><strong>Level:</strong> {{ workout.level }}</p>
+            </div>
+        </div>
+
+        <a href="{% url 'next_workout' %}" class="btn btn-primary">Next Workout</a>
+    {% else %}
+        <p>No current workout session found.</p>
+    {% endif %}
 </div>
 {% endblock %}
