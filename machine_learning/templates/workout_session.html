@@ -3,24 +3,18 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2>Workout Session</h2>
+<div class="container">
+    <h1>Workout: {{ workout.Title }}</h1>
+    <p>{{ workout.Desc }}</p>
+    <p><strong>Type:</strong> {{ workout.Type }}</p>
+    <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
+    <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
+    <p><strong>Level:</strong> {{ workout.Level }}</p>
 
-    {% for workout in recommended_workouts %}
-        <div class="card mb-3">
-            <div class="card-body">
-                <h3 class="card-title">{{ workout.Title }}</h3>
-                <p class="card-text"><strong>Description:</strong> {{ workout.Desc }}</p>
-                <p class="card-text"><strong>Type:</strong> {{ workout.Type }}</p>
-                <p class="card-text"><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
-                <p class="card-text"><strong>Equipment:</strong> {{ workout.Equipment }}</p>
-                <p class="card-text"><strong>Level:</strong> {{ workout.Level }}</p>
-            </div>
-        </div>
-
-        <a href="{% url 'next_workout' %}" class="btn btn-primary">Next Workout</a>
-    {% else %}
-        <p>No current workout session found.</p>
-    {% endif %}
+    <!-- Button to mark the workout as completed -->
+    <form action="{% url 'next_workout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">Complete Workout</button>
+    </form>
 </div>
 {% endblock %}

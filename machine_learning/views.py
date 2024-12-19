@@ -177,26 +177,15 @@ def workout_recommendation_view(request):
     return HttpResponse(template.render(context, request))
 
 def workout_session_view(request):
-    # Get the user's current workout session
-    session, created = UserWorkoutSession.objects.get_or_create(user=request.user)
+    # Fetch the user’s current workout session from the UserProgress model
+    progress_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
 
-    # If there is no current workout, start the first recommended workout
-    if not session.current_workout:
-        # Get the first uncompleted workout for the user from UserProgress
-        progress_workouts = UserProgress.objects.filter(user=request.user, completed=False)
-        
-        if progress_workouts.exists():
-            next_workout = progress_workouts.first().workout  # Get the next uncompleted workout
-            session.current_workout = next_workout
-            session.save()
-        else:
-            # If there are no workouts left, redirect to the workout complete view
-            return redirect('workout_complete')
+    if not progress_workout:
+        # If no uncompleted workouts, redirect to a completion or fallback page
+        return redirect('workout_complete')
 
-    # Now, get the current workout
-    current_workout = session.current_workout
+    current_workout = progress_workout.workout  # Get the workout associated with the progress
 
-    # Context to render in the template
     context = {
         'workout': {
             'Title': current_workout.Title,
@@ -252,7 +241,7 @@ def workout_complete_view(request):
 
 def progress_tracker_view(request):
     progress_list = UserProgress.objects.filter(user=request.user, completed=True)
-    progress_percentage = progress_list.count() * 100 / Workout.objects.count()
+    progress_percentage = (progress_list.count() * 100) / Workout.objects.count() if Workout.objects.count() > 0 else 0
 
     context = {
         'progress_percentage': progress_percentage,

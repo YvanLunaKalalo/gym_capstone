@@ -6,8 +6,7 @@
 <div class="container mt-5">
     <h2>Workout Complete</h2>
     <div class="alert alert-success">
-        <strong>Congratulations!</strong> You have completed all the workouts!
-    </div>
+        <strong>{{ completed_message }}</strong>
 
     <p>Your progress: <strong>{{ progress_percentage }}%</strong></p>
     <a href="{% url 'progress_tracker' %}" class="btn btn-primary">View Progress Tracker</a>
