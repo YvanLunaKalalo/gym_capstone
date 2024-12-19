@@ -142,19 +142,22 @@ def workout_recommendation_view(request):
 
         # Save recommended workouts to the UserProgress model
         for _, workout in recommended_workouts.iterrows():
+            workout_instance, created = Workout.objects.get_or_create(
+                Title=workout['Title'],
+                defaults={
+                    'Desc': workout['Desc'],
+                    'Type': workout['Type'],
+                    'BodyPart': workout['BodyPart'],
+                    'Equipment': workout.get('Equipment', 'None'),
+                    'Level': workout.get('Level', 'None')
+                }
+            )
+
+            # Create a UserProgress entry for each recommended workout
             UserProgress.objects.get_or_create(
                 user=request.user,
-                workout=Workout.objects.get_or_create(
-                    Title=workout['Title'],
-                    defaults={
-                        'Desc': workout['Desc'],
-                        'Type': workout['Type'],
-                        'BodyPart': workout['BodyPart'],
-                        'Equipment': workout.get('Equipment', 'None'),
-                        'Level': workout.get('Level', 'None')
-                    }
-                )[0],
-                defaults={'progress': 0}  # Initialize progress
+                workout=workout_instance,
+                defaults={'progress': 0}  # Initialize progress to 0
             )
             
         # Calculate dynamic progress
@@ -174,19 +177,26 @@ def workout_recommendation_view(request):
     return HttpResponse(template.render(context, request))
 
 def workout_session_view(request):
-    session = get_object_or_404(UserWorkoutSession, user=request.user)
-    current_workout = session.current_workout
-    
-    if not current_workout:
-        # Get the next workout the user hasn't completed
+    # Get the user's current workout session
+    session, created = UserWorkoutSession.objects.get_or_create(user=request.user)
+
+    # If there is no current workout, start the first recommended workout
+    if not session.current_workout:
+        # Get the first uncompleted workout for the user from UserProgress
         progress_workouts = UserProgress.objects.filter(user=request.user, completed=False)
+        
         if progress_workouts.exists():
-            next_workout = progress_workouts.first().workout
+            next_workout = progress_workouts.first().workout  # Get the next uncompleted workout
             session.current_workout = next_workout
             session.save()
         else:
-            return redirect('workout_complete')  # No more workouts
+            # If there are no workouts left, redirect to the workout complete view
+            return redirect('workout_complete')
 
+    # Now, get the current workout
+    current_workout = session.current_workout
+
+    # Context to render in the template
     context = {
         'workout': {
             'Title': current_workout.Title,
@@ -250,3 +260,4 @@ def progress_tracker_view(request):
     }
 
     return render(request, 'progress_tracker.html', context)
+
