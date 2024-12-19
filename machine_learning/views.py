@@ -200,8 +200,8 @@ def workout_session_view(request):
     return render(request, 'workout_session.html', context)
 
 def next_workout_view(request):
-    # Ensure the user has a session; if not, create a new one
-    session, created = UserWorkoutSession.objects.get_or_create(user=request.user)
+    # Ensure the user has a session
+    session = get_object_or_404(UserWorkoutSession, user=request.user)
 
     # Get the current workout from the session
     current_workout = session.current_workout
@@ -250,3 +250,4 @@ def progress_tracker_view(request):
     }
 
     return render(request, 'progress_tracker.html', context)
+
