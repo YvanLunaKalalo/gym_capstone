@@ -249,4 +249,3 @@ def progress_tracker_view(request):
     }
 
     return render(request, 'progress_tracker.html', context)
-
