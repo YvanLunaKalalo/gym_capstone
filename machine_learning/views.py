@@ -200,31 +200,30 @@ def workout_session_view(request):
     return render(request, 'workout_session.html', context)
 
 def next_workout_view(request):
-    # Ensure the user has a session
     session = get_object_or_404(UserWorkoutSession, user=request.user)
-
-    # Get the current workout from the session
     current_workout = session.current_workout
-    if not current_workout:
-        return redirect('no_workouts')  # If no current workout, redirect to a fallback page
 
-    # Mark the current workout as completed
-    UserProgress.objects.filter(user=request.user, workout=current_workout).update(completed=True)
+    if current_workout:
+        # Mark the current workout as completed
+        UserProgress.objects.update_or_create(
+            user=request.user,
+            workout=current_workout,
+            defaults={'completed': True}
+        )
 
-    # Find the next uncompleted workout
-    next_progress_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
+        # Find the next uncompleted workout
+        next_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
+        if next_workout:
+            session.current_workout = next_workout.workout
+            session.save()
+            return redirect('workout_session')
 
-    if next_progress_workout:
-        # Set the session to the next workout
-        session.current_workout = next_progress_workout.workout
+        # If no more workouts, mark the session as completed
+        session.completed = True
         session.save()
-        return redirect('workout_session')  # Redirect to the session view to continue with the next workout
+        return redirect('workout_complete')
 
-    # If no more workouts, mark the session as completed
-    session.completed = True
-    session.save()
-
-    return redirect('workout_complete')  # Redirect to the completion page when all workouts are done
+    return redirect('no_workouts')
 
 def workout_complete_view(request):
     session = get_object_or_404(UserWorkoutSession, user=request.user)
