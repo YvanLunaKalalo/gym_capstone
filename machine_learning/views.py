@@ -174,19 +174,25 @@ def workout_recommendation_view(request):
     return HttpResponse(template.render(context, request))
 
 def start_workout_session_view(request):
-    # Initialize a workout session for the user
-    workouts = Workout.objects.all()  # Fetch all recommended workouts
-    if not workouts.exists():
-        return redirect('no_workouts')  # Handle the case where there are no workouts
+    recommended_workouts = get_recommended_workouts_for_user(request.user)
+    
+    if not recommended_workouts.exists():
+        return redirect('no_workouts')  # Handle the case where there are no recommended workouts
 
-    # Start a session with the first workout
-    first_workout = workouts.first()
+    # Start a session with the first recommended workout
+    first_workout = recommended_workouts.first()
     session, created = UserWorkoutSession.objects.get_or_create(
         user=request.user,
         defaults={'current_workout': first_workout}
     )
 
     return redirect('workout_session')
+
+# A function to get recommended workouts based on user's profile or preferences
+def get_recommended_workouts_for_user(user):
+    # Example logic for getting recommended workouts based on user's profile
+    # You may want to use a recommendation algorithm here
+    return Workout.objects.filter(recommended_for=user.profile.fitness_goal)
 
 def workout_session_view(request):
     session = get_object_or_404(UserWorkoutSession, user=request.user)
@@ -195,7 +201,14 @@ def workout_session_view(request):
         return redirect('no_workouts')  # Handle if there is no current workout
 
     context = {
-        'workout': current_workout
+        'workout': {
+            'title': current_workout.Title,  # Use correct field names from your Workout model
+            'desc': current_workout.Desc,
+            'type': current_workout.Type,
+            'body_part': current_workout.BodyPart,
+            'equipment': current_workout.Equipment,
+            'level': current_workout.Level
+        }
     }
 
     return render(request, 'workout_session.html', context)

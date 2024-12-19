@@ -45,6 +45,9 @@ class UserWorkoutSession(models.Model):
     def __str__(self):
         return f'{self.user.username} - Progress: {self.progress}%'    
     
+    class Meta:
+        verbose_name_plural = "Workout Sessions"
+    
 class UserProgress(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
