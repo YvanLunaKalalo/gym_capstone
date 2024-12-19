@@ -5,12 +5,12 @@
 {% block content %}
 <div class="container mt-5">
     <!-- Display workout details -->
-    <h2>{{ workout.title }}</h2>
-    <p>{{ workout.desc }}</p>
-    <p><strong>Type:</strong> {{ workout.type }}</p>
-    <p><strong>Body Part:</strong> {{ workout.body_part }}</p>
-    <p><strong>Equipment:</strong> {{ workout.equipment }}</p>
-    <p><strong>Level:</strong> {{ workout.level }}</p>
+    <h2>{{ workout.Title }}</h2>
+    <p>{{ workout.Desc }}</p>
+    <p><strong>Type:</strong> {{ workout.Type }}</p>
+    <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
+    <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
+    <p><strong>Level:</strong> {{ workout.Level }}</p>
 
     <!-- Button to mark workout as done and move to the next workout -->
     <form method="POST" action="{% url 'next_workout' %}">
