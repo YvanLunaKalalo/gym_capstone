@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     path('bmi/', views.bmi_view, name="bmi"),
-    path('workout-recommendations/', views.workout_recommendation_view, name='workout_recommendations'),
+    path('recommend/', views.workout_recommendation_view, name="recommend"),
     path('workout/session/', views.workout_session_view, name='workout_session'),
     path('workout/next/', views.next_workout_view, name='next_workout'),
     path('workout/complete/', views.workout_complete_view, name='workout_complete'),
