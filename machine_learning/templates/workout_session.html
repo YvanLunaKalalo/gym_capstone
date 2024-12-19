@@ -6,15 +6,15 @@
 <div class="container mt-5">
     <h2>Workout Session</h2>
 
-    {% if workout %}
+    {% for workout in recommended_workouts %}
         <div class="card mb-3">
             <div class="card-body">
-                <h3 class="card-title">{{ workout.title }}</h3>
-                <p class="card-text"><strong>Description:</strong> {{ workout.desc }}</p>
-                <p class="card-text"><strong>Type:</strong> {{ workout.type }}</p>
-                <p class="card-text"><strong>Body Part:</strong> {{ workout.body_part }}</p>
-                <p class="card-text"><strong>Equipment:</strong> {{ workout.equipment }}</p>
-                <p class="card-text"><strong>Level:</strong> {{ workout.level }}</p>
+                <h3 class="card-title">{{ workout.Title }}</h3>
+                <p class="card-text"><strong>Description:</strong> {{ workout.Desc }}</p>
+                <p class="card-text"><strong>Type:</strong> {{ workout.Type }}</p>
+                <p class="card-text"><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
+                <p class="card-text"><strong>Equipment:</strong> {{ workout.Equipment }}</p>
+                <p class="card-text"><strong>Level:</strong> {{ workout.Level }}</p>
             </div>
         </div>
 

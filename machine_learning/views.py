@@ -189,12 +189,12 @@ def workout_session_view(request):
 
     context = {
         'workout': {
-            'title': current_workout.Title,
-            'desc': current_workout.Desc,
-            'type': current_workout.Type,
-            'body_part': current_workout.BodyPart,
-            'equipment': current_workout.Equipment,
-            'level': current_workout.Level
+            'Title': current_workout.Title,
+            'Desc': current_workout.Desc,
+            'Type': current_workout.Type,
+            'BodyPart': current_workout.BodyPart,
+            'Equipment': current_workout.Equipment,
+            'Level': current_workout.Level
         }
     }
 
