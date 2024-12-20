@@ -197,9 +197,8 @@ def workout_session_view(request):
             'BodyPart': current_workout.BodyPart,
             'Equipment': current_workout.Equipment,
             'Level': current_workout.Level,
-            'current_progress': progress_workout.current_progress,  # Example
-
-        }
+        },
+        'progress_workout': progress_workout,  # Include current progress for display
     }
 
     return render(request, 'workout_session.html', context)
