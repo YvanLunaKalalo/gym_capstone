@@ -3,16 +3,21 @@
 {% load static %}
 
 {% block content %}
-<!-- workout_complete.html -->
-<h1>Workout Complete!</h1>
-<p>You have completed all your workouts.</p>
-<p><strong>Progress:</strong> {{ progress_percentage }}%</p>
+<div class="container">
+    <h2>Workout Complete</h2>
+    <p>Congratulations on completing all your workouts!</p>
 
-<h2>Completed Workouts:</h2>
-<ul>
-    {% for workout in completed_workouts %}
-        <li>{{ workout.workout.Title }} ({{ workout.date }})</li>
-    {% endfor %}
-</ul>
+    <h3>Your Progress</h3>
+    <p>You have completed {{ completed_workouts.count }} out of {{ completed_workouts.count }} workouts.</p>
+    <p>Your progress: {{ progress_percentage }}%</p>
 
+    <h4>Completed Workouts:</h4>
+    <ul>
+        {% for progress in completed_workouts %}
+        <li>{{ progress.workout.Title }} - Completed on {{ progress.progress_date }}</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'progress_tracker' %}" class="btn btn-primary">Go to Progress Tracker</a>
+</div>
 {% endblock %}

@@ -3,15 +3,17 @@
 {% load static %}
 
 {% block content %}
-  <h2>{{ workout.Title }}</h2>
-  <p><strong>Description:</strong> {{ workout.Desc }}</p>
-  <p><strong>Type:</strong> {{ workout.Type }}</p>
-  <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
-  <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
-  <p><strong>Level:</strong> {{ workout.Level }}</p>
+<div class="container">
+    <h2>Current Workout: {{ workout.Title }}</h2>
+    <p><strong>Description:</strong> {{ workout.Desc }}</p>
+    <p><strong>Type:</strong> {{ workout.Type }}</p>
+    <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
+    <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
+    <p><strong>Level:</strong> {{ workout.Level }}</p>
 
-  <form method="POST">
-    {% csrf_token %}
-    <button type="submit">Mark as Completed</button>
-  </form>
+    <form method="post" action="{% url 'complete_workout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">Complete Workout</button>
+    </form>
+</div>
 {% endblock %}

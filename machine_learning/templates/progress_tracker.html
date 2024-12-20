@@ -3,14 +3,23 @@
 {% load static %}
 
 {% block content %}
-<h1>Workout Progress</h1>
-<p><strong>Total Progress:</strong> {{ progress_percentage }}%</p>
+<div class="container">
+    <h2>Progress Tracker</h2>
+    <p>Your total workout progress:</p>
+    <p>You have completed {{ completed_count }} out of {{ total_workouts }} workouts.</p>
+    <p>Your progress: {{ progress_percentage }}%</p>
 
-<h2>All Workouts:</h2>
-<ul>
-    {% for progress in user_progress %}
-        <li>{{ progress.workout.Title }} - Completed: {{ progress.completed }} - Date: {{ progress.date }}</li>
-    {% endfor %}
-</ul>
-
+    <h4>All Workouts:</h4>
+    <ul>
+        {% for progress in user_progress %}
+        <li>
+            {% if progress.completed %}
+            <strong>{{ progress.workout.Title }} - Completed on {{ progress.progress_date }}</strong>
+            {% else %}
+            {{ progress.workout.Title }} - In Progress
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}
