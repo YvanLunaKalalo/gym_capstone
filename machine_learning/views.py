@@ -196,7 +196,9 @@ def workout_session_view(request):
             'Type': current_workout.Type,
             'BodyPart': current_workout.BodyPart,
             'Equipment': current_workout.Equipment,
-            'Level': current_workout.Level
+            'Level': current_workout.Level,
+            'current_progress': progress_workout.current_progress,  # Example
+
         }
     }
 

@@ -13,17 +13,15 @@
             <h6 class="mb-3">Welcome back, <strong>{{ request.user.username }}</strong>!</h6>
             <h2 class="mb-4">Unlock Your <em>Personalized Workout Plan</em></h2>
 
-            <!-- Display unfinished workout link if there is an unfinished workout -->
-            {% with progress_workout= user_progress.filter(completed=False).first %}
-            {% if progress_workout %}
-            <div class="mt-3">
-                <p class="text-warning">You have an unfinished workout! <strong>{{ progress_workout.workout.Title }}</strong></p>
-                <div class="main-button">
-                    <a href="{% url 'workout_session' %}" class="btn btn-warning btn-lg">Continue Your Workout</a>
-                </div>
-            </div>
+
+            {% if workout.current_progress %}
+                <p><strong>Current Progress:</strong> {{ workout.current_progress }}</p>
             {% endif %}
-            {% endwith %}
+
+            <!-- Button to mark the workout as complete and proceed -->
+            <div class="main-button mt-4">
+                <a href="{% url 'complete_workout' %}" class="btn btn-secondary btn-lg">Complete this Workout</a>
+            </div>
 
             <!-- Label for the form button -->
             <div class="mt-3">
