@@ -12,10 +12,10 @@
 
     <!-- Column layout for User Profile, Workouts, and Progress -->
     <div class="row">
-        <!-- User Profile Section -->
         <div class="col-md-12 mb-4">
             <h5 class="text-center mb-4">Profile Information</h5>
 
+            <!-- User Profile Section -->
             {% if user_profile %}
             <div class="card shadow-sm mb-4 border-0">
                 <div class="card-header text-black">
@@ -43,33 +43,40 @@
 
         <!-- Workouts Section -->
         <div class="col-md-12 mb-4">
-            <h5 class="text-center mb-4">Your Workouts</h5>
+            <h5 class="text-center mb-4">Your Workouts by Day</h5>
+
             {% if workouts %}
-            <div class="accordion" id="workoutAccordion">
-                {% for workout in workouts %}
+            <div class="accordion" id="dayAccordion">
+                {% for day, day_workouts in workouts_by_day.items %}
                 <div class="accordion-item mb-3 border-0">
-                    <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                    <h2 class="accordion-header" id="headingDay{{ forloop.counter }}">
                         <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false"
-                                aria-controls="collapse{{ forloop.counter }}">
-                            {{ workout.Title }}
+                                data-bs-target="#collapseDay{{ forloop.counter }}" aria-expanded="false"
+                                aria-controls="collapseDay{{ forloop.counter }}">
+                            Day {{ day }} - Progress: 
+                            {% with total=day_workouts.count completed=user_progress_by_day|default_if_none:0 %}
+                                {{ (completed|floatformat:1|divisibleby:total|floatformat:2) }}%
+                            {% endwith %}
                         </button>
                     </h2>
-                    <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse"
-                         aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#workoutAccordion">
+                    <div id="collapseDay{{ forloop.counter }}" class="accordion-collapse collapse"
+                         aria-labelledby="headingDay{{ forloop.counter }}" data-bs-parent="#dayAccordion">
                         <div class="accordion-body">
-                            <p>{{ workout.Desc }}</p>
-                            <p><strong>Type:</strong> {{ workout.Type }}</p>
-                            <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
-                            <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
-                            <p><strong>Level:</strong> {{ workout.Level }}</p>
-                            <!-- Display Progress if available -->
-                            {% for progress in user_progress %}
-                                {% if progress.workout == workout %}
-                                    <p><strong>Progress:</strong> {{ progress.progress }}% completed</p>
-                                    <p><strong>Last Update:</strong> {{ progress.progress_date }}</p>
-                                    <p><strong>Completed:</strong> {{ progress.completed|yesno:"Yes,No" }}</p>
-                                {% endif %}
+                            <!-- List Workouts for Day -->
+                            {% for workout in day_workouts %}
+                            <div class="border p-3 mb-2">
+                                <h5>{{ workout.Title }}</h5>
+                                <p>{{ workout.Desc }}</p>
+                                <p><strong>Type:</strong> {{ workout.Type }}</p>
+                                <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
+                                <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
+                                <p><strong>Level:</strong> {{ workout.Level }}</p>
+
+                                <!-- Show Workout Progress -->
+                                {% with progress_for_workout=user_progress|get_progress:workout %}
+                                    <p><strong>Progress:</strong> {{ progress_for_workout|default:"0" }}%</p>
+                                {% endwith %}
+                            </div>
                             {% endfor %}
                         </div>
                     </div>
@@ -79,64 +86,6 @@
             {% else %}
             <div class="alert alert-info text-center mt-3">
                 <strong>No workouts recorded yet!</strong>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Your Progress Section with Chart.js Graph -->
-        <div class="col-md-12 mb-4">
-            <h5 class="text-center mb-4">Your Progress</h5>
-            {% if user_progress %}
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <canvas id="progressChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Chart.js script -->
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-            <script>
-                const ctx = document.getElementById('progressChart').getContext('2d');
-                const progressChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: [
-                            {% for progress in user_progress %}
-                            "{{ progress.workout.Title }}",
-                            {% endfor %}
-                        ],
-                        datasets: [{
-                            label: 'Progress (%)',
-                            data: [
-                                {% for progress in user_progress %}
-                                {{ progress.progress }},
-                                {% endfor %}
-                            ],
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100
-                            }
-                        },
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top',
-                            },
-                        },
-                    }
-                });
-            </script>
-            {% else %}
-            <div class="alert alert-info text-center mt-3">
-                <strong>No progress recorded yet!</strong>
             </div>
             {% endif %}
         </div>
