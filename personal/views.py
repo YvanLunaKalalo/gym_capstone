@@ -6,8 +6,17 @@ from machine_learning.models import Workout, UserProfile, UserProgress
 
 def index_view(request):
     template = loader.get_template('index.html')
-
-    context = {}
+    
+    # Check if the user is authenticated
+    if request.user.is_authenticated:
+        # Fetch the user's current workout session (uncompleted)
+        progress_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
+    else:
+        progress_workout = None
+        
+    context = {
+        'progress_workout': progress_workout
+    }
 
     if request.method=="POST":
         contact = Contact()
