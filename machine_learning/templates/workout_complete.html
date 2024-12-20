@@ -3,9 +3,12 @@
 {% load static %}
 
 {% block content %}
-<body class="container mt-4">
+<div class="container mt-5 text-center">
     <h1>{{ completed_message }}</h1>
-    <p>Your progress: {{ progress_percentage }}%</p>
-    <a href="{% url 'progress_tracker' %}" class="btn btn-success">View Progress</a>
-</body>
+    <p>You have completed <strong>{{ progress_percentage }}%</strong> of your total workouts.</p>
+    <p>Total Workouts Completed: {{ progress_percentage }} out of {{ total_workouts }}</p>
+
+    <a href="{% url 'progress_tracker' %}" class="btn btn-primary mt-3">View Progress</a>
+    <a href="{% url 'index' %}" class="btn btn-secondary mt-3">Home</a>
+</div>
 {% endblock %}
