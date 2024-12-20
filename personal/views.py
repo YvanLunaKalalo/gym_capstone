@@ -3,7 +3,6 @@ from django.http import HttpResponse
 from django.template import loader
 from personal.models import Contact
 from machine_learning.models import Workout, UserProfile, UserProgress
-from collections import defaultdict
 
 def index_view(request):
     template = loader.get_template('index.html')
@@ -32,42 +31,51 @@ def index_view(request):
 
     return HttpResponse(template.render(context, request))
 
+
 def dashboard_view(request):
-    
     if not request.user.is_authenticated:
         return redirect("login")
 
     # Get the user profile for the logged-in user
     user_profile = UserProfile.objects.filter(user=request.user).first()
-    
-    # Get all workouts
-    workouts = Workout.objects.all()
-    
-    # Example grouping workouts by day
-    workouts_by_day = defaultdict(list)  # Dictionary to store workouts by day
-    day = 1
-    for i, workout in enumerate(workouts):
-        if (i % 5) == 0 and i > 0:
-            day += 1
-        workouts_by_day[day].append(workout)
 
-    # Fetch only the workouts and progress associated with the logged-in user
+    # Fetch all progress and workouts associated with the logged-in user
     user_progress = UserProgress.objects.filter(user=request.user)
     
-    # Calculate total completed workouts for each day
-    user_progress_by_day = {}
-    for day, day_workouts in workouts_by_day.items():
-        completed_count = user_progress.filter(workout__in=day_workouts, completed=True).count()
-        user_progress_by_day[day] = completed_count
+    # Fetch all workouts
+    all_workouts = Workout.objects.all()
+    
+    # Group workouts into days (e.g., each day contains 5 workouts)
+    workouts_per_day = 5  # Adjust this number as needed
+    days = []
+    current_day = []
+    for index, workout in enumerate(all_workouts, start=1):
+        current_day.append(workout)
+        if index % workouts_per_day == 0:
+            days.append(current_day)
+            current_day = []
 
-    # Filter recommended workouts from UserProgress model
-    workouts = [progress.workout for progress in user_progress]
+    if current_day:
+        days.append(current_day)  # Add remaining workouts to the last day
+    
+    # Calculate the progress per day
+    days_progress = []
+    for day_workouts in days:
+        completed_count = 0
+        for workout in day_workouts:
+            progress = user_progress.filter(workout=workout).first()
+            if progress and progress.completed:
+                completed_count += 1
+        # Calculate progress percentage for this day
+        day_progress_percentage = (completed_count / len(day_workouts)) * 100
+        days_progress.append({
+            'day_workouts': day_workouts,
+            'progress_percentage': day_progress_percentage
+        })
 
     context = {
         'user_profile': user_profile,
-        'workouts_by_day': workouts_by_day,
-        'user_progress_by_day': user_progress_by_day,
-        'user_progress': user_progress,
+        'days_progress': days_progress,  # List of days with workouts and progress
     }
 
     return render(request, 'dashboard.html', context)
