@@ -177,7 +177,10 @@ def workout_recommendation_view(request):
     return HttpResponse(template.render(context, request))
 
 def workout_session_view(request):
-    # Fetch the user’s current workout session from the UserProgress model
+    if not request.user.is_authenticated:
+        return redirect("login")
+
+    # Fetch the user's current workout session from the UserProgress model
     progress_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
 
     if not progress_workout:
@@ -199,54 +202,61 @@ def workout_session_view(request):
 
     return render(request, 'workout_session.html', context)
 
-def next_workout_view(request):
-    session = get_object_or_404(UserWorkoutSession, user=request.user)
-    current_workout = session.current_workout
+def complete_workout_view(request):
+    if not request.user.is_authenticated:
+        return redirect("login")
 
-    if current_workout:
-        # Mark the current workout as completed
-        UserProgress.objects.update_or_create(
-            user=request.user,
-            workout=current_workout,
-            defaults={'completed': True}
-        )
+    # Mark the current workout as completed
+    progress_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
 
-        # Find the next uncompleted workout
-        next_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
-        if next_workout:
-            session.current_workout = next_workout.workout
-            session.save()
-            return redirect('workout_session')  # Redirect to workout session view for the next workout
+    if progress_workout:
+        progress_workout.completed = True
+        progress_workout.save()
 
-        # If no more workouts, mark the session as completed
-        session.completed = True
-        session.save()
+    # Check if there are more workouts to complete
+    next_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
+
+    if next_workout:
+        # If there's another workout to complete, redirect to it
+        return redirect('workout_session')
+    else:
+        # If all workouts are completed, redirect to workout complete page
         return redirect('workout_complete')
 
-    return redirect('no_workouts')
-
 def workout_complete_view(request):
-    session = get_object_or_404(UserWorkoutSession, user=request.user)
-    progress = UserProgress.objects.filter(user=request.user, completed=True).count()
-    total_workouts = Workout.objects.all().count()
+    if not request.user.is_authenticated:
+        return redirect("login")
 
-    progress_percentage = int((progress / total_workouts) * 100) if total_workouts > 0 else 0
+    # Fetch all completed workouts
+    completed_workouts = UserProgress.objects.filter(user=request.user, completed=True)
+
+    # Calculate progress
+    total_workouts = UserProgress.objects.filter(user=request.user).count()
+    completed_count = completed_workouts.count()
+    progress_percentage = (completed_count / total_workouts) * 100 if total_workouts > 0 else 0
 
     context = {
-        'progress_percentage': progress_percentage,
-        'completed_message': 'Congratulations! You have completed all the workouts!',
-        'total_workouts': total_workouts
+        'completed_workouts': completed_workouts,
+        'progress_percentage': progress_percentage
     }
 
     return render(request, 'workout_complete.html', context)
 
 def progress_tracker_view(request):
-    progress_list = UserProgress.objects.filter(user=request.user, completed=True)
-    progress_percentage = (progress_list.count() * 100) / Workout.objects.count() if Workout.objects.count() > 0 else 0
+    if not request.user.is_authenticated:
+        return redirect("login")
+
+    # Fetch all user progress records
+    user_progress = UserProgress.objects.filter(user=request.user)
+
+    # Calculate progress
+    total_workouts = user_progress.count()
+    completed_count = user_progress.filter(completed=True).count()
+    progress_percentage = (completed_count / total_workouts) * 100 if total_workouts > 0 else 0
 
     context = {
-        'progress_percentage': progress_percentage,
-        'completed_workouts': progress_list
+        'user_progress': user_progress,
+        'progress_percentage': progress_percentage
     }
 
     return render(request, 'progress_tracker.html', context)
