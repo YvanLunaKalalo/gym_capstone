@@ -12,10 +12,10 @@
 
     <!-- Column layout for User Profile, Workouts, and Progress -->
     <div class="row">
+        <!-- User Profile Section -->
         <div class="col-md-12 mb-4">
             <h5 class="text-center mb-4">Profile Information</h5>
 
-            <!-- User Profile Section -->
             {% if user_profile %}
             <div class="card shadow-sm mb-4 border-0">
                 <div class="card-header text-black">
@@ -41,8 +41,8 @@
             {% endif %}
         </div>
 
+        <!-- Workouts Section -->
         <div class="col-md-12 mb-4">
-            <!-- Available Workouts Section with collapsible dropdowns -->
             <h5 class="text-center mb-4">Your Workouts</h5>
             {% if workouts %}
             <div class="accordion" id="workoutAccordion">
@@ -66,7 +66,9 @@
                             <!-- Display Progress if available -->
                             {% for progress in user_progress %}
                                 {% if progress.workout == workout %}
-                                    <p><strong>Progress:</strong> {{ progress.progress_date }}%</p>
+                                    <p><strong>Progress:</strong> {{ progress.progress }}% completed</p>
+                                    <p><strong>Last Update:</strong> {{ progress.progress_date }}</p>
+                                    <p><strong>Completed:</strong> {{ progress.completed|yesno:"Yes,No" }}</p>
                                 {% endif %}
                             {% endfor %}
                         </div>
@@ -81,8 +83,8 @@
             {% endif %}
         </div>
 
+        <!-- Your Progress Section with Chart.js Graph -->
         <div class="col-md-12 mb-4">
-            <!-- Your Progress Section with Chart.js Graph -->
             <h5 class="text-center mb-4">Your Progress</h5>
             {% if user_progress %}
             <div class="card shadow-sm border-0">
@@ -96,7 +98,7 @@
             <script>
                 const ctx = document.getElementById('progressChart').getContext('2d');
                 const progressChart = new Chart(ctx, {
-                    type: 'bar', // Type of chart (can also be 'line', 'pie', etc.)
+                    type: 'bar',
                     data: {
                         labels: [
                             {% for progress in user_progress %}
@@ -110,8 +112,8 @@
                                 {{ progress.progress }},
                                 {% endfor %}
                             ],
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)', // Bar color
-                            borderColor: 'rgba(75, 192, 192, 1)', // Border color
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
                             borderWidth: 1
                         }]
                     },
@@ -119,7 +121,7 @@
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                max: 100 // Set max value to 100 for percentages
+                                max: 100
                             }
                         },
                         responsive: true,
