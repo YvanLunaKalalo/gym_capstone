@@ -3,22 +3,13 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2>Progress Tracker</h2>
-
-    <p>Your progress: <strong>{{ progress_percentage }}%</strong></p>
-
-    <h3>Completed Workouts</h3>
-    {% if completed_workouts %}
-        <ul class="list-group">
-            {% for progress in completed_workouts %}
-                <li class="list-group-item">
-                    <strong>{{ progress.workout.Title }}</strong> - {{ progress.workout.Desc }} ({{ progress.workout.Type }})
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No workouts completed yet.</p>
-    {% endif %}
-</div>
+<body class="container mt-4">
+    <h1>Progress Tracker</h1>
+    <p>Progress: {{ progress_percentage }}%</p>
+    <ul>
+        {% for workout in completed_workouts %}
+            <li>{{ workout.workout.Title }} - Completed</li>
+        {% endfor %}
+    </ul>
+</body>
 {% endblock %}

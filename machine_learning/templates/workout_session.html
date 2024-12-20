@@ -3,18 +3,18 @@
 {% load static %}
 
 {% block content %}
-<div class="container">
-    <h1>Workout: {{ workout.Title }}</h1>
+<body class="container mt-4">
+    <h1>{{ workout.Title }}</h1>
     <p>{{ workout.Desc }}</p>
-    <p><strong>Type:</strong> {{ workout.Type }}</p>
-    <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
-    <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
-    <p><strong>Level:</strong> {{ workout.Level }}</p>
-
-    <!-- Button to mark the workout as completed -->
+    <ul>
+        <li><strong>Type:</strong> {{ workout.Type }}</li>
+        <li><strong>Body Part:</strong> {{ workout.BodyPart }}</li>
+        <li><strong>Equipment:</strong> {{ workout.Equipment }}</li>
+        <li><strong>Level:</strong> {{ workout.Level }}</li>
+    </ul>
     <form action="{% url 'next_workout' %}" method="post">
         {% csrf_token %}
-        <button type="submit" class="btn btn-success">Complete Workout</button>
+        <button class="btn btn-primary">Mark as Completed</button>
     </form>
-</div>
+</body>
 {% endblock %}

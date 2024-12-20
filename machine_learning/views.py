@@ -216,7 +216,7 @@ def next_workout_view(request):
         if next_workout:
             session.current_workout = next_workout.workout
             session.save()
-            return redirect('workout_session')
+            return redirect('workout_session')  # Redirect to workout session view for the next workout
 
         # If no more workouts, mark the session as completed
         session.completed = True
@@ -234,7 +234,8 @@ def workout_complete_view(request):
 
     context = {
         'progress_percentage': progress_percentage,
-        'completed_message': 'Congratulations! You have completed all the workouts!'
+        'completed_message': 'Congratulations! You have completed all the workouts!',
+        'total_workouts': total_workouts
     }
 
     return render(request, 'workout_complete.html', context)
@@ -249,4 +250,3 @@ def progress_tracker_view(request):
     }
 
     return render(request, 'progress_tracker.html', context)
-
