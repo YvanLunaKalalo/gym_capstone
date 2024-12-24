@@ -3,23 +3,37 @@
 {% load static %}
 
 {% block content %}
-<div class="container">
-    <h2>Progress Tracker</h2>
-    <p>Your total workout progress:</p>
-    <p>You have completed {{ completed_count }} out of {{ total_workouts }} workouts.</p>
-    <p>Your progress: {{ progress_percentage }}%</p>
+<div class="container my-5">
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <h2 class="text-center text-primary mb-4">Progress Tracker</h2>
+            <p class="lead text-center">Track your progress and stay motivated!</p>
 
-    <h4>All Workouts:</h4>
-    <ul>
-        {% for progress in user_progress %}
-        <li>
-            {% if progress.completed %}
-            <strong>{{ progress.workout.Title }} - Completed on {{ progress.progress_date }}</strong>
-            {% else %}
-            {{ progress.workout.Title }} - In Progress
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
+            <div class="progress-summary my-4">
+                <h4>Total Workout Progress</h4>
+                <p>You have completed <strong>{{ completed_count }}</strong> out of <strong>{{ total_workouts }}</strong> workouts.</p>
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress_percentage }}%;" aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                        {{ progress_percentage }}%
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="mt-4">All Workouts</h4>
+            <ul class="list-group">
+                {% for progress in user_progress %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {% if progress.completed %}
+                    <span><strong>{{ progress.workout.Title }}</strong> - Completed on {{ progress.progress_date }}</span>
+                    <span class="badge bg-success rounded-pill">Completed</span>
+                    {% else %}
+                    <span>{{ progress.workout.Title }} - In Progress</span>
+                    <span class="badge bg-warning rounded-pill">In Progress</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 </div>
 {% endblock %}

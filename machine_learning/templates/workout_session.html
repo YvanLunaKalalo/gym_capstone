@@ -3,17 +3,37 @@
 {% load static %}
 
 {% block content %}
-<div class="container">
-    <h2>Current Workout: {{ workout.Title }}</h2>
-    <p><strong>Description:</strong> {{ workout.Desc }}</p>
-    <p><strong>Type:</strong> {{ workout.Type }}</p>
-    <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
-    <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
-    <p><strong>Level:</strong> {{ workout.Level }}</p>
-
-    <form method="post" action="{% url 'complete_workout' %}">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-success">Complete Workout</button>
-    </form>
+<div class="container my-5">
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <h2 class="card-title text-center text-primary">{{ workout.Title }}</h2>
+            <hr>
+            <p class="card-text"><strong>Description:</strong> {{ workout.Desc }}</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Type:</strong> {{ workout.Type }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Level:</strong> {{ workout.Level }}</p>
+                </div>
+            </div>
+            <form method="post" action="{% url 'complete_workout' %}">
+                {% csrf_token %}
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-lg btn-success">
+                        <i class="bi bi-check-circle-fill"></i> Complete Workout
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

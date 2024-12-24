@@ -3,21 +3,37 @@
 {% load static %}
 
 {% block content %}
-<div class="container">
-    <h2>Workout Complete</h2>
-    <p>Congratulations on completing all your workouts!</p>
+<div class="container my-5">
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <h2 class="text-center text-success mb-4">Workout Complete</h2>
+            <p class="text-center lead">Congratulations on completing all your workouts!</p>
 
-    <h3>Your Progress</h3>
-    <p>You have completed {{ completed_workouts.count }} out of {{ completed_workouts.count }} workouts.</p>
-    <p>Your progress: {{ progress_percentage }}%</p>
+            <div class="progress-section mt-4">
+                <h3 class="text-primary">Your Progress</h3>
+                <p>You have completed <strong>{{ completed_workouts.count }}</strong> out of <strong>{{ total_workouts }}</strong> workouts.</p>
+                <div class="progress mb-3" style="height: 20px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress_percentage }}%;" aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                        {{ progress_percentage }}%
+                    </div>
+                </div>
+            </div>
 
-    <h4>Completed Workouts:</h4>
-    <ul>
-        {% for progress in completed_workouts %}
-        <li>{{ progress.workout.Title }} - Completed on {{ progress.progress_date }}</li>
-        {% endfor %}
-    </ul>
+            <h4 class="mt-4">Completed Workouts:</h4>
+            <ul class="list-group">
+                {% for progress in completed_workouts %}
+                <li class="list-group-item">
+                    <strong>{{ progress.workout.Title }}</strong> - Completed on {{ progress.progress_date }}
+                </li>
+                {% endfor %}
+            </ul>
 
-    <a href="{% url 'progress_tracker' %}" class="btn btn-primary">Go to Progress Tracker</a>
+            <div class="text-center mt-4">
+                <a href="{% url 'progress_tracker' %}" class="btn btn-lg btn-primary">
+                    <i class="bi bi-graph-up"></i> Go to Progress Tracker
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
