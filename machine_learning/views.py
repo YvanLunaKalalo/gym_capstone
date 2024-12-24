@@ -6,6 +6,7 @@ import pandas as pd
 from django.conf import settings
 from sklearn.metrics.pairwise import cosine_similarity
 from .models import Workout, UserProfile, UserWorkoutSession, UserProgress
+from django.utils.timezone import now
 
 # Load the pre-trained model
 model1 = load('./Saved_Models/model1.joblib') # BMI
@@ -212,17 +213,48 @@ def complete_workout_view(request):
 
     if progress_workout:
         progress_workout.completed = True
+        progress_workout.progress_date = now()  # Set completion date
         progress_workout.save()
 
     # Check if there are more workouts to complete
     next_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
 
-    if next_workout:
-        # If there's another workout to complete, redirect to it
-        return redirect('workout_session')
-    else:
-        # If all workouts are completed, redirect to workout complete page
+    if not next_workout:
+        # All workouts completed, recommend new ones
+        user_profile = UserProfile.objects.get(user=request.user)
+        recommend_new_workouts(request.user, user_profile)
+
         return redirect('workout_complete')
+
+    return redirect('workout_session')
+
+def recommend_new_workouts(user, profile):
+    # Simulate generating workout recommendations based on the user's profile
+    profile_vector = vectorizer.transform([f"{profile.Sex} {profile.Age} {profile.Height} {profile.Weight} {profile.Hypertension} {profile.Diabetes} {profile.BMI} {profile.Level} {profile.Fitness_Goal} {profile.Fitness_Type}"])
+
+    # Compute cosine similarity and get top recommendations
+    similarity_scores = cosine_similarity(profile_vector, workout_features_matrix)
+    top_indices = similarity_scores[0].argsort()[-5:][::-1]
+    recommended_workouts = workout_data.iloc[top_indices]
+
+    # Save new workouts to UserProgress
+    for _, workout in recommended_workouts.iterrows():
+        workout_instance, created = Workout.objects.get_or_create(
+            Title=workout['Title'],
+            defaults={
+                'Desc': workout['Desc'],
+                'Type': workout['Type'],
+                'BodyPart': workout['BodyPart'],
+                'Equipment': workout.get('Equipment', 'None'),
+                'Level': workout.get('Level', 'None')
+            }
+        )
+
+        UserProgress.objects.get_or_create(
+            user=user,
+            workout=workout_instance,
+            defaults={'progress': 0}  # Initialize progress to 0
+        )
 
 def workout_complete_view(request):
     if not request.user.is_authenticated:
@@ -257,7 +289,9 @@ def progress_tracker_view(request):
 
     context = {
         'user_progress': user_progress,
-        'progress_percentage': progress_percentage
+        'progress_percentage': progress_percentage,
+        'total_workouts': total_workouts,
+        'completed_count': completed_count
     }
 
     return render(request, 'progress_tracker.html', context)
