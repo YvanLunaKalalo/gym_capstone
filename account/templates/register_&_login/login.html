@@ -129,6 +129,10 @@
         <div class="alert alert-danger">{{ error_messages }}</div>
         {% endif %}
 
+        <div class="main-button">
+          <button class="main-button" type="submit">Log in</button>
+        </div>
+        
         <button class="btn btn-lg btn-primary" style="background-color: #ed563b; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px;" type="submit">Log in</button>
 
         <div class="d-flex flex-column p-2">
@@ -138,9 +142,11 @@
         </div>
       </form>
 
-      <a href="{% url 'index' %}" class="btn btn-primary mt-3" style="background-color: #ed563b; border: none; padding: 12px 20px; font-size: 16px; display: block; text-align: center;">
-        Go to Home
-      </a>            
+      <div class="main-button">
+        <a href="{% url 'index' %}" class="main-button">
+          Go to Home
+        </a>
+      </div>
 
     </div>
   </div>
