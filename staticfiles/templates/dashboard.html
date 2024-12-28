@@ -42,33 +42,34 @@
         </div>
 
         <div class="col-md-12 mb-4">
-            <!-- Available Workouts Section with collapsible dropdowns -->
-            <h5 class="text-center mb-4">Your Workouts</h5>
-            {% if workouts %}
-            <div class="accordion" id="workoutAccordion">
-                {% for workout in workouts %}
+            <!-- Available Workouts Section grouped by days -->
+            <h5 class="text-center mb-4">Your Workouts by Days</h5>
+            {% if days_progress %}
+            <div class="accordion" id="dayAccordion">
+                {% for day in days_progress %}
                 <div class="accordion-item mb-3 border-0">
-                    <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                    <h2 class="accordion-header" id="headingDay{{ forloop.counter }}">
                         <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false"
-                                aria-controls="collapse{{ forloop.counter }}">
-                            {{ workout.Title }}
+                                data-bs-target="#collapseDay{{ forloop.counter }}" aria-expanded="false"
+                                aria-controls="collapseDay{{ forloop.counter }}">
+                            Day {{ forloop.counter }} - Progress: {{ day.progress_percentage }}%
                         </button>
                     </h2>
-                    <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse"
-                         aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#workoutAccordion">
+                    <div id="collapseDay{{ forloop.counter }}" class="accordion-collapse collapse"
+                         aria-labelledby="headingDay{{ forloop.counter }}" data-bs-parent="#dayAccordion">
                         <div class="accordion-body">
-                            <p>{{ workout.Desc }}</p>
-                            <p><strong>Type:</strong> {{ workout.Type }}</p>
-                            <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
-                            <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
-                            <p><strong>Level:</strong> {{ workout.Level }}</p>
-                            <!-- Display Progress if available -->
-                            {% for progress in user_progress %}
-                                {% if progress.workout == workout %}
-                                    <p><strong>Progress:</strong> {{ progress.progress }}%</p>
-                                {% endif %}
-                            {% endfor %}
+                            <ul class="list-unstyled">
+                                {% for workout in day.day_workouts %}
+                                <li class="mb-2">
+                                    <strong>{{ workout.Title }}</strong>
+                                    <p>{{ workout.Desc }}</p>
+                                    <p><strong>Type:</strong> {{ workout.Type }}</p>
+                                    <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
+                                    <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
+                                    <p><strong>Level:</strong> {{ workout.Level }}</p>
+                                </li>
+                                {% endfor %}
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -99,15 +100,15 @@
                     type: 'bar', // Type of chart (can also be 'line', 'pie', etc.)
                     data: {
                         labels: [
-                            {% for progress in user_progress %}
-                            "{{ progress.workout.Title }}",
+                            {% for day in days_progress %}
+                            "Day {{ forloop.counter }}",
                             {% endfor %}
                         ],
                         datasets: [{
                             label: 'Progress (%)',
                             data: [
-                                {% for progress in user_progress %}
-                                {{ progress.progress }},
+                                {% for day in days_progress %}
+                                {{ day.progress_percentage }},
                                 {% endfor %}
                             ],
                             backgroundColor: 'rgba(75, 192, 192, 0.2)', // Bar color

@@ -194,6 +194,22 @@ body {
   background-color: #f9735b;
 }
 
+.main-button button {
+  display: inline-block;
+  font-size: 15px;
+  padding: 12px 20px;
+  background-color: #ed563b;
+  color: #fff;
+  text-align: center;
+  font-weight: 400;
+  text-transform: uppercase;
+  transition: all .3s;
+}
+
+.main-button button:hover {
+  background-color: #f9735b;
+}
+
 
 /* 
 ---------------------------------------------
