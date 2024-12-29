@@ -21,9 +21,8 @@
                     <a id="continueWorkoutButton" href="{% url 'workout_session' %}" class="main-button">Continue Your Workout</a>
                 </div>
             </div>
-            {% else %}
-
-            <!-- Label for the form button -->
+            {% elif not has_profile %}
+            <!-- If no profile, show the recommendation form -->
             <div class="mt-3">
                 <label for="fillFormButton" class="form-label text-white">Looking for a new routine?</label>
                 <div class="main-button">
