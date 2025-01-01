@@ -181,32 +181,17 @@ def workout_session_view(request):
     if not request.user.is_authenticated:
         return redirect("login")
 
-    # # Fetch the user's current workout session from the UserProgress model
-    # progress_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
+    # Fetch the next workout for the user
+    next_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
 
-    # if not progress_workout:
-    #     # If no uncompleted workouts, redirect to a completion or fallback page
-    #     return redirect('workout_complete')
-    
-    # Fetch the user's current workout session from the UserProgress model
-    try:
-        progress_workout = UserProgress.objects.get(user=request.user, completed=False)
-    except UserProgress.DoesNotExist:
-        # If no uncompleted workouts, redirect to the workout completion page
-        return redirect('workout_complete')
+    if not next_workout:
+        return redirect("workout_complete")
 
-    current_workout = progress_workout.workout  # Get the workout associated with the progress
-
+    # Get the workout details
+    workout = next_workout.workout
     context = {
-        'workout': {
-            'Title': current_workout.Title,
-            'Desc': current_workout.Desc,
-            'Type': current_workout.Type,
-            'BodyPart': current_workout.BodyPart,
-            'Equipment': current_workout.Equipment,
-            'Level': current_workout.Level,
-        },
-        'progress_workout': progress_workout,  # Include current progress for display
+        'workout': workout,
+        'progress_workout': next_workout,  # Include the progress to show current status
     }
 
     return render(request, 'workout_session.html', context)
@@ -215,36 +200,34 @@ def complete_workout_view(request):
     if not request.user.is_authenticated:
         return redirect("login")
 
-    # Mark the current workout as completed
+    # Fetch the current workout in progress
     progress_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
 
     if progress_workout:
+        # Mark it as completed
         progress_workout.completed = True
-        progress_workout.progress_date = now()  # Set completion date
+        progress_workout.progress_date = now()  # Store the date of completion
         progress_workout.save()
 
-    # Check if there are more workouts to complete
+    # Check if there are more workouts
     next_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
 
     if not next_workout:
-        # All workouts completed, recommend new ones
-        user_profile = UserProfile.objects.get(user=request.user)
+        return redirect("workout_complete")
 
-        return redirect('workout_complete')
-
-    return redirect('workout_session')
+    return redirect("workout_session")
 
 def workout_complete_view(request):
     if not request.user.is_authenticated:
         return redirect("login")
 
-    # Fetch all completed workouts
+    # Fetch all completed workouts for the user
     completed_workouts = UserProgress.objects.filter(user=request.user, completed=True)
 
-    # Calculate progress
+    # Check if all workouts are completed
     total_workouts = UserProgress.objects.filter(user=request.user).count()
     completed_count = completed_workouts.count()
-    progress_percentage = (completed_count / total_workouts) * 100 if total_workouts > 0 else 0
+    progress_percentage = (completed_count / total_workouts) * 100 if total_workouts else 0
 
     context = {
         'completed_workouts': completed_workouts,
@@ -273,3 +256,21 @@ def progress_tracker_view(request):
     }
 
     return render(request, 'progress_tracker.html', context)
+
+def workout_loop_view(request):
+    if not request.user.is_authenticated:
+        return redirect("login")
+
+    # Fetch all completed workouts and reset their progress
+    completed_workouts = UserProgress.objects.filter(user=request.user, completed=True)
+
+    for progress in completed_workouts:
+        # Reset progress and set completed to False for next day
+        progress.completed = False
+        progress.progress = 0
+        progress.save()
+
+    # Redirect to the first workout session
+    return redirect("workout_session")
+
+
