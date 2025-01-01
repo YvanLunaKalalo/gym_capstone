@@ -253,8 +253,9 @@ def recommend_new_workouts(user, profile):
         UserProgress.objects.get_or_create(
             user=user,
             workout=workout_instance,
-            defaults={'progress': 0}  # Initialize progress to 0
+            defaults={'progress': 0, 'completed': False}  # Initialize progress to 0
         )
+    return
 
 def workout_complete_view(request):
     if not request.user.is_authenticated:
