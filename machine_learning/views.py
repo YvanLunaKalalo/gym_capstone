@@ -184,9 +184,9 @@ def workout_session_view(request):
     # Fetch the user's current workout session from the UserProgress model
     progress_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
 
-    if not progress_workout:
-        # If no uncompleted workouts, redirect to a completion or fallback page
-        return redirect('workout_complete')
+    # if not progress_workout:
+    #     # If no uncompleted workouts, redirect to a completion or fallback page
+    #     return redirect('workout_complete')
 
     current_workout = progress_workout.workout  # Get the workout associated with the progress
 
