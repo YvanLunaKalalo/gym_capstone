@@ -181,17 +181,25 @@ def workout_session_view(request):
     if not request.user.is_authenticated:
         return redirect("login")
 
-    # Fetch the next workout for the user
-    next_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
+    # Fetch the user's current workout session from the UserProgress model
+    progress_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
 
-    if not next_workout:
-        return redirect("workout_complete")
+    if not progress_workout:
+        # If no uncompleted workouts, redirect to a completion or fallback page
+        return redirect('workout_complete')
 
-    # Get the workout details
-    workout = next_workout.workout
+    current_workout = progress_workout.workout  # Get the workout associated with the progress
+
     context = {
-        'workout': workout,
-        'progress_workout': next_workout,  # Include the progress to show current status
+        'workout': {
+            'Title': current_workout.Title,
+            'Desc': current_workout.Desc,
+            'Type': current_workout.Type,
+            'BodyPart': current_workout.BodyPart,
+            'Equipment': current_workout.Equipment,
+            'Level': current_workout.Level,
+        },
+        'progress_workout': progress_workout,  # Include current progress for display
     }
 
     return render(request, 'workout_session.html', context)
@@ -200,34 +208,65 @@ def complete_workout_view(request):
     if not request.user.is_authenticated:
         return redirect("login")
 
-    # Fetch the current workout in progress
+    # Mark the current workout as completed
     progress_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
 
     if progress_workout:
-        # Mark it as completed
         progress_workout.completed = True
-        progress_workout.progress_date = now()  # Store the date of completion
+        progress_workout.progress_date = now()  # Set completion date
         progress_workout.save()
 
-    # Check if there are more workouts
+    # Check if there are more workouts to complete
     next_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
 
     if not next_workout:
-        return redirect("workout_complete")
+        # All workouts completed, recommend new ones
+        user_profile = UserProfile.objects.get(user=request.user)
+        recommend_new_workouts(request.user, user_profile)
 
-    return redirect("workout_session")
+        return redirect('workout_complete')
+
+    return redirect('workout_session')
+
+def recommend_new_workouts(user, profile):
+    # Simulate generating workout recommendations based on the user's profile
+    profile_vector = vectorizer.transform([f"{profile.Sex} {profile.Age} {profile.Height} {profile.Weight} {profile.Hypertension} {profile.Diabetes} {profile.BMI} {profile.Level} {profile.Fitness_Goal} {profile.Fitness_Type}"])
+
+    # Compute cosine similarity and get top recommendations
+    similarity_scores = cosine_similarity(profile_vector, workout_features_matrix)
+    top_indices = similarity_scores[0].argsort()[-5:][::-1]
+    recommended_workouts = workout_data.iloc[top_indices]
+
+    # Save new workouts to UserProgress
+    for _, workout in recommended_workouts.iterrows():
+        workout_instance, created = Workout.objects.get_or_create(
+            Title=workout['Title'],
+            defaults={
+                'Desc': workout['Desc'],
+                'Type': workout['Type'],
+                'BodyPart': workout['BodyPart'],
+                'Equipment': workout.get('Equipment', 'None'),
+                'Level': workout.get('Level', 'None')
+            }
+        )
+
+        UserProgress.objects.get_or_create(
+            user=user,
+            workout=workout_instance,
+            defaults={'progress': 0}  # Initialize progress to 0
+        )
 
 def workout_complete_view(request):
     if not request.user.is_authenticated:
         return redirect("login")
 
-    # Fetch all completed workouts for the user
+    # Fetch all completed workouts
     completed_workouts = UserProgress.objects.filter(user=request.user, completed=True)
 
-    # Check if all workouts are completed
+    # Calculate progress
     total_workouts = UserProgress.objects.filter(user=request.user).count()
     completed_count = completed_workouts.count()
-    progress_percentage = (completed_count / total_workouts) * 100 if total_workouts else 0
+    progress_percentage = (completed_count / total_workouts) * 100 if total_workouts > 0 else 0
 
     context = {
         'completed_workouts': completed_workouts,
@@ -256,21 +295,3 @@ def progress_tracker_view(request):
     }
 
     return render(request, 'progress_tracker.html', context)
-
-def workout_loop_view(request):
-    if not request.user.is_authenticated:
-        return redirect("login")
-
-    # Fetch all completed workouts and reset their progress
-    completed_workouts = UserProgress.objects.filter(user=request.user, completed=True)
-
-    for progress in completed_workouts:
-        # Reset progress and set completed to False for next day
-        progress.completed = False
-        progress.progress = 0
-        progress.save()
-
-    # Redirect to the first workout session
-    return redirect("workout_session")
-
-

@@ -8,5 +8,4 @@ urlpatterns = [
     path('workout-complete/', views.complete_workout_view, name='complete_workout'),
     path('workout-completed/', views.workout_complete_view, name='workout_complete'),
     path('progress-tracker/', views.progress_tracker_view, name='progress_tracker'),
-    path('workout-loop/', views.workout_loop_view, name='workout_loop'),
 ]
