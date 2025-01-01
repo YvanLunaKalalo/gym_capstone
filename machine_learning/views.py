@@ -186,7 +186,7 @@ def workout_session_view(request):
 
     if not progress_workout:
         # If no uncompleted workouts, redirect to a completion or fallback page
-        return redirect('workout_complete')
+        return redirect('workout_session')
 
     current_workout = progress_workout.workout  # Get the workout associated with the progress
 
