@@ -181,12 +181,19 @@ def workout_session_view(request):
     if not request.user.is_authenticated:
         return redirect("login")
 
-    # Fetch the user's current workout session from the UserProgress model
-    progress_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
+    # # Fetch the user's current workout session from the UserProgress model
+    # progress_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
 
-    if not progress_workout:
-        # If no uncompleted workouts, redirect to a completion or fallback page
-        return redirect('workout_session')
+    # if not progress_workout:
+    #     # If no uncompleted workouts, redirect to a completion or fallback page
+    #     return redirect('workout_complete')
+    
+    # Fetch the user's current workout session from the UserProgress model
+    try:
+        progress_workout = UserProgress.objects.get(user=request.user, completed=False)
+    except UserProgress.DoesNotExist:
+        # If no uncompleted workouts, redirect to the workout completion page
+        return redirect('workout_complete')
 
     current_workout = progress_workout.workout  # Get the workout associated with the progress
 
@@ -222,40 +229,10 @@ def complete_workout_view(request):
     if not next_workout:
         # All workouts completed, recommend new ones
         user_profile = UserProfile.objects.get(user=request.user)
-        recommend_new_workouts(request.user, user_profile)
 
         return redirect('workout_complete')
 
     return redirect('workout_session')
-
-def recommend_new_workouts(user, profile):
-    # Simulate generating workout recommendations based on the user's profile
-    profile_vector = vectorizer.transform([f"{profile.Sex} {profile.Age} {profile.Height} {profile.Weight} {profile.Hypertension} {profile.Diabetes} {profile.BMI} {profile.Level} {profile.Fitness_Goal} {profile.Fitness_Type}"])
-
-    # Compute cosine similarity and get top recommendations
-    similarity_scores = cosine_similarity(profile_vector, workout_features_matrix)
-    top_indices = similarity_scores[0].argsort()[-5:][::-1]
-    recommended_workouts = workout_data.iloc[top_indices]
-
-    # Save new workouts to UserProgress
-    for _, workout in recommended_workouts.iterrows():
-        workout_instance, created = Workout.objects.get_or_create(
-            Title=workout['Title'],
-            defaults={
-                'Desc': workout['Desc'],
-                'Type': workout['Type'],
-                'BodyPart': workout['BodyPart'],
-                'Equipment': workout.get('Equipment', 'None'),
-                'Level': workout.get('Level', 'None')
-            }
-        )
-
-        UserProgress.objects.get_or_create(
-            user=user,
-            workout=workout_instance,
-            defaults={'progress': 0, 'completed': False}  # Initialize progress to 0
-        )
-    return
 
 def workout_complete_view(request):
     if not request.user.is_authenticated:
