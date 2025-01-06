@@ -32,16 +32,6 @@
 
             {% endif %}
 
-            {% if has_profile %}
-            <!-- If workout recommendations exist, show start workout button -->
-            <div class="mt-3">
-                <label for="startWorkoutButton" class="form-label text-white">You have new workout recommendations!</label>
-                <div class="main-button mt-1">
-                    <a id="startWorkoutButton" href="{% url 'workout_session' %}" class="main-button">Start Your Recommended Workout</a>
-                </div>
-            </div>
-            {% endif %}
-
             <!-- Label for the dashboard button -->
             <div class="mt-3">
                 <label for="goToDashboardButton" class="form-label text-white">Already have a plan?</label>
