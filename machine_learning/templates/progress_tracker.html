@@ -8,6 +8,11 @@
 
 {% block content %}
 <div class="container mt-5">
+
+    <a href="{% url 'index' %}" class="btn btn-custom">
+        Go Back
+    </a>
+
     <div class="card shadow-sm p-4">
         <h2 class="text-center mb-4">Progress Tracker</h2>
 
@@ -78,5 +83,7 @@
             {% endif %}
         </div>
     </div>
+
+
 </div>
 {% endblock %}
