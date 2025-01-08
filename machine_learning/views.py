@@ -280,23 +280,13 @@ def progress_tracker_view(request):
         return redirect("login")
 
     # Fetch all user progress records
-    today = now().date()
     user_progress = UserProgress.objects.filter(user=request.user)
 
     # Calculate progress
     total_workouts = user_progress.count()
-    completed_today = user_progress.filter(completed=True, progress_date__date=today).count()
     completed_count = user_progress.filter(completed=True).count()
     progress_percentage = (completed_count / total_workouts) * 100 if total_workouts > 0 else 0
 
-    # Check if all workouts for today have been completed
-    if completed_today == total_workouts:
-        # All workouts for today are completed, proceed to the next session
-        # Optionally, save or log the day as completed
-        # Do not change the assigned workouts but allow the user to proceed to the next day
-        # Redirect to workout session
-        return redirect('workout_session')
-    
     context = {
         'user_progress': user_progress,
         'progress_percentage': progress_percentage,
