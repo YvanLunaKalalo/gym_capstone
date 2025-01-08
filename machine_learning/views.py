@@ -295,3 +295,58 @@ def progress_tracker_view(request):
     }
 
     return render(request, 'progress_tracker.html', context)
+
+def update_profile_view(request):
+    if not request.user.is_authenticated:
+        return redirect("login")
+    
+    # Fetch the user's profile
+    try:
+        profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        return redirect('profile_not_found')  # Handle cases where the profile does not exist
+    
+    context = {}
+
+    if request.method == 'POST':
+        # Get the new height and weight from the form submission
+        new_height = request.POST.get('Height', '')
+        new_weight = request.POST.get('Weight', '')
+
+        # Store the old height and weight before updating
+        old_height = profile.Height
+        old_weight = profile.Weight
+
+        # Update the profile with new height and weight if provided
+        if new_height:
+            profile.Height = new_height
+        if new_weight:
+            profile.Weight = new_weight
+
+        # Save the updated profile
+        profile.save()
+
+        # Compare old vs. new values
+        height_changed = old_height != profile.Height
+        weight_changed = old_weight != profile.Weight
+
+        # Pass comparison results to the template
+        context.update({
+            'old_height': old_height,
+            'old_weight': old_weight,
+            'new_height': profile.Height,
+            'new_weight': profile.Weight,
+            'height_changed': height_changed,
+            'weight_changed': weight_changed,
+        })
+
+    else:
+        # If it's a GET request, just display the form with current values
+        context.update({
+            'old_height': profile.Height,
+            'old_weight': profile.Weight,
+            'new_height': profile.Height,
+            'new_weight': profile.Weight,
+        })
+
+    return render(request, 'update_profile.html', context)
