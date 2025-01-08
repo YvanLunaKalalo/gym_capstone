@@ -7,7 +7,39 @@
 {% endblock %}
 
 {% block content %}
-<div class="container my-5">
+
+<div class="container mt-5">
+
+    <div class="card shadow-sm p-4">
+        <h2 class="text-center mb-4">Workout Complete</h2>
+
+        <!-- Completion Message -->
+        <div class="alert alert-success text-center">
+            <h4>Congratulations!</h4>
+            <p>You have successfully completed all your workouts for this cycle.</p>
+
+            {% if progress_percentage == 100 %}
+                <p>You've reached 100% completion! New workouts will be available soon. Keep up the great work!</p>
+            {% else %}
+                <p>We recommend new workouts for your next phase! Stay motivated!</p>
+            {% endif %}
+        </div>
+
+        <!-- Next Steps Section -->
+        <div class="alert alert-info mt-4 text-center">
+            <h5>What's Next?</h5>
+            <p>We will be recommending new workouts for your next phase. Stay tuned!</p>
+        </div>
+
+        <!-- Button to go back to Dashboard -->
+        <a href="{% url 'dashboard' %}" class="btn btn-custom mt-3">
+            Go Back to Your Dashboard
+        </a>
+    </div>
+
+</div>
+
+<!-- <div class="container my-5">
     <div class="card shadow-lg">
         <div class="card-body">
             <h2 class="text-center text-success mb-4">Workout Complete</h2>
@@ -30,7 +62,7 @@
                     <strong>{{ progress.workout.Title }}</strong> - Completed on {{ progress.progress_date }}
                 </li>
                 {% endfor %}
-            </ul>
+            </ul> -->
 
             <div class="text-center mt-4">
                 <a href="{% url 'progress_tracker' %}" class="btn btn-lg btn-primary">

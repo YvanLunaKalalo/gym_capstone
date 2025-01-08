@@ -7,6 +7,7 @@ from django.conf import settings
 from sklearn.metrics.pairwise import cosine_similarity
 from .models import Workout, UserProfile, UserWorkoutSession, UserProgress
 from django.utils.timezone import now
+from datetime import timedelta
 
 # Load the pre-trained model
 model1 = load('./Saved_Models/model1.joblib') # BMI
@@ -204,28 +205,67 @@ def workout_session_view(request):
 
     return render(request, 'workout_session.html', context)
 
+# def complete_workout_view(request):
+#     if not request.user.is_authenticated:
+#         return redirect("login")
+
+#     # Mark the current workout as completed
+#     progress_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
+
+#     if progress_workout:
+#         progress_workout.completed = True
+#         progress_workout.progress_date = now()  # Set completion date
+#         progress_workout.save()
+
+#     # Check if there are more workouts to complete
+#     next_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
+
+#     if not next_workout:
+#         # All workouts completed, recommend new ones
+#         user_profile = UserProfile.objects.get(user=request.user)
+#         recommend_new_workouts(request.user, user_profile)
+
+#         return redirect('workout_complete')
+
+#     return redirect('workout_session')
+
 def complete_workout_view(request):
+    # Check if user is authenticated
     if not request.user.is_authenticated:
         return redirect("login")
 
-    # Mark the current workout as completed
+    # Fetch all incomplete workouts for the user
     progress_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
 
+    # If there's an incomplete workout, mark it as completed
     if progress_workout:
         progress_workout.completed = True
-        progress_workout.progress_date = now()  # Set completion date
+        progress_workout.progress_date = now()  # Set the completion date to the current time
         progress_workout.save()
 
-    # Check if there are more workouts to complete
-    next_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
+    # Check if all workouts for the current day are completed
+    current_date = now().date()  # Get today's date
+    day_workouts = UserProgress.objects.filter(user=request.user, progress_date=current_date)
 
-    if not next_workout:
-        # All workouts completed, recommend new ones
-        user_profile = UserProfile.objects.get(user=request.user)
-        recommend_new_workouts(request.user, user_profile)
+    if day_workouts.count() == day_workouts.filter(completed=True).count():
+        # If all workouts for the day are completed, move to the next day
+        next_day = current_date + timedelta(days=1)
+        next_workout = UserProgress.objects.filter(user=request.user, progress_date=next_day, completed=False).first()
 
-        return redirect('workout_complete')
+        if not next_workout:
+            # All workouts for this day are completed, move to day 2 or recommend new workouts if Day 6 is reached
+            user_profile = UserProfile.objects.get(user=request.user)
+            if current_date.day == 6:  # After Day 6, recommend new workouts
+                recommend_new_workouts(request.user, user_profile)
+                return redirect('workout_complete')  # Redirect to completion page once all workouts are completed
+            else:
+                # Proceed to the next day's workout session
+                return redirect('workout_session')
+        else:
+            # Move to the next workout of the day
+            return redirect('workout_session')
 
+    # Redirect back to the current workout session if not all are completed
     return redirect('workout_session')
 
 def recommend_new_workouts(user, profile):
