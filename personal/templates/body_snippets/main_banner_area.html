@@ -23,13 +23,15 @@
             </div>
             {% endif %}
 
-            <!-- If no profile, show the recommendation form -->
+            <!-- Only show recommendation link if no profile data -->
+            {% if not user.profile_data %}
             <div class="mt-3">
                 <label for="fillFormButton" class="form-label text-white">Looking for a new routine?</label>
                 <div class="main-button">
                     <a id="fillFormButton" href="{% url 'recommend' %}" class="main-button">Get Your Recommendations</a>
                 </div>
             </div>
+            {% endif %}
 
             <!-- Label for the dashboard button -->
             <div class="mt-3">
