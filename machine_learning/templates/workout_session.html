@@ -8,6 +8,9 @@
 
 {% block content %}
 <div class="container my-5">
+    <a href="{% url 'recommend' %}" class="btn btn-custom">
+        Go Back
+      </a>
     <div class="card shadow-lg">
         <div class="card-body">
             <h2 class="card-title text-center text-primary">{{ workout.Title }}</h2>
