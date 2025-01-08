@@ -3,7 +3,7 @@
 <!-- ***** Main Banner Area Start ***** -->
 <div class="main-banner" id="top">
     <video autoplay muted loop id="bg-video" class="w-100">
-        <source src="{% static 'images/gym-video.mp4' %}" type="video/mp4" />
+        <source src="{% static 'images/1.jpg' %}" type="video/mp4" />
     </video>
 
     <div class="video-overlay header-text d-flex flex-column justify-content-center align-items-center">
@@ -21,9 +21,10 @@
                     <a id="continueWorkoutButton" href="{% url 'workout_session' %}" class="main-button">Continue Your Workout</a>
                 </div>
             </div>
-            {% else %}
+            {% endif %}
 
-            <!-- Label for the form button -->
+            <!-- Only show recommendation link if no profile data -->
+            {% if not user.profile_data %}
             <div class="mt-3">
                 <label for="fillFormButton" class="form-label text-white">Looking for a new routine?</label>
                 <div class="main-button">

@@ -9,11 +9,15 @@ def index_view(request):
 
     # Check if the user has an ongoing workout session
     progress_workout = None
+    has_profile = False  # Flag for checking if user has a profile
     if request.user.is_authenticated:
         progress_workout = UserProgress.objects.filter(user=request.user, completed=False).first()
+        has_profile = UserProfile.objects.filter(user=request.user).exists()
+
 
     context = {
         'progress_workout': progress_workout,  # Pass this to the template
+        'has_profile': has_profile  # Pass the profile flag to the template
     } 
        
     if request.method=="POST":
