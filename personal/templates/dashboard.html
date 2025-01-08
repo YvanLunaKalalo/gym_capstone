@@ -41,43 +41,35 @@
             {% endif %}
         </div>
 
+        <!-- Workout History Section -->
         <div class="col-md-12 mb-4">
-            <!-- Available Workouts Section grouped by days -->
-            <h5 class="text-center mb-4">Your Workouts by Days</h5>
-            {% if days_progress %}
-            <div class="accordion" id="dayAccordion">
-                {% for day in days_progress %}
-                <div class="accordion-item mb-3 border-0">
-                    <h2 class="accordion-header" id="headingDay{{ forloop.counter }}">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#collapseDay{{ forloop.counter }}" aria-expanded="false"
-                                aria-controls="collapseDay{{ forloop.counter }}">
-                            Day {{ forloop.counter }} - Progress: {{ day.progress_percentage }}%
-                        </button>
-                    </h2>
-                    <div id="collapseDay{{ forloop.counter }}" class="accordion-collapse collapse"
-                         aria-labelledby="headingDay{{ forloop.counter }}" data-bs-parent="#dayAccordion">
-                        <div class="accordion-body">
-                            <ul class="list-unstyled">
-                                {% for workout in day.day_workouts %}
-                                <li class="mb-2">
-                                    <strong>{{ workout.Title }}</strong>
-                                    <p>{{ workout.Desc }}</p>
-                                    <p><strong>Type:</strong> {{ workout.Type }}</p>
-                                    <p><strong>Body Part:</strong> {{ workout.BodyPart }}</p>
-                                    <p><strong>Equipment:</strong> {{ workout.Equipment }}</p>
-                                    <p><strong>Level:</strong> {{ workout.Level }}</p>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+            <h5 class="text-center mb-4">Workout History</h5>
+            {% if workout_history %}
+            <table class="table table-bordered">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Workout Name</th>
+                        <th scope="col">Completion Status</th>
+                        <th scope="col">Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for workout in workout_history %}
+                    <tr class="{% if workout.completed %}table-success{% else %}table-warning{% endif %}">
+                        <td>{{ workout.workout_name }}</td>
+                        <td>{% if workout.completed %}Completed{% else %}Incomplete{% endif %}</td>
+                        <td>{{ workout.date | date:"F j, Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center">No workout records yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             {% else %}
             <div class="alert alert-info text-center mt-3">
-                <strong>No workouts recorded yet!</strong>
+                <strong>No workout history available.</strong>
             </div>
             {% endif %}
         </div>
