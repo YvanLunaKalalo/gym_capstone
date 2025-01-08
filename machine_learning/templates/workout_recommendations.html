@@ -68,14 +68,19 @@
                   </div>
                 </div>
               </div>
-              <form method="POST" action="{% url 'workout_session' %}">
+              <!-- <form method="POST" action="{% url 'workout_session' %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-custom btn-lg w-100 text-uppercase font-weight-bold" style="letter-spacing: 1px;">Start Workout Session</button>
-              </form>
+              </form> -->
             {% endfor %}
           {% else %}
             <p class="text-center text-white">No workout recommendations available at the moment.</p>
           {% endif %}
+          
+          <form method="POST" action="{% url 'workout_session' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-custom btn-lg w-100 text-uppercase font-weight-bold" style="letter-spacing: 1px;">Start Workout Session</button>
+          </form>
         </div>
       </div>
     </div>
