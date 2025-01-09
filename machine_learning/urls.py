@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path('bmi/', views.bmi_view, name="bmi"),
+    path('profile-form/', views.profile_form_view, name="profile_form"),
     path('recommend/', views.workout_recommendation_view, name="recommend"),
     path('workout-session/', views.workout_session_view, name='workout_session'),
     path('workout-complete/', views.complete_workout_view, name='complete_workout'),
